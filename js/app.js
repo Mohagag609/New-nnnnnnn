@@ -1385,6 +1385,131 @@ async function deleteTransaction(transactionId) {
     }
 }
 
+// --- Items Management ---
+
+document.addEventListener('itemsPageLoaded', () => {
+    renderItemsList();
+    setupAddItemForm();
+    setupEditItemForm();
+});
+
+async function renderItemsList() {
+    try {
+        const items = await getAllItems('items');
+        const tableBody = document.getElementById('itemsTableBody');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        if (items.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">لا يوجد بنود لعرضها.</td></tr>';
+            return;
+        }
+
+        items.forEach(item => {
+            const row = `
+                <tr>
+                    <td>${item.item_id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.unit_price.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="editItemRecord(${item.item_id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItemRecord(${item.item_id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+    } catch (error) {
+        console.error('Error rendering items list:', error);
+    }
+}
+
+function setupAddItemForm() {
+    const addItemForm = document.getElementById('addItemForm');
+    if (!addItemForm) return;
+
+    addItemForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const newItem = {
+            name: document.getElementById('itemName').value,
+            unit_price: parseFloat(document.getElementById('itemPrice').value),
+        };
+
+        try {
+            await addItem('items', newItem);
+            const modalElement = document.getElementById('addItemModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+            addItemForm.reset();
+            await renderItemsList();
+        } catch (error) {
+            console.error('Error adding item:', error);
+            alert('حدث خطأ أثناء إضافة البند.');
+        }
+    });
+}
+
+function setupEditItemForm() {
+    const editItemForm = document.getElementById('editItemForm');
+    if (!editItemForm) return;
+
+    editItemForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const itemId = parseInt(document.getElementById('editItemId').value);
+
+        const updatedItem = {
+            item_id: itemId,
+            name: document.getElementById('editItemName').value,
+            unit_price: parseFloat(document.getElementById('editItemPrice').value),
+        };
+
+        try {
+            await updateItem('items', updatedItem);
+            const modalElement = document.getElementById('editItemModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+            await renderItemsList();
+        } catch (error) {
+            console.error('Error updating item:', error);
+            alert('حدث خطأ أثناء تحديث بيانات البند.');
+        }
+    });
+}
+
+async function editItemRecord(itemId) {
+    try {
+        const item = await getItemById('items', itemId);
+        if (!item) {
+            alert('لم يتم العثور على البند.');
+            return;
+        }
+
+        document.getElementById('editItemId').value = item.item_id;
+        document.getElementById('editItemName').value = item.name;
+        document.getElementById('editItemPrice').value = item.unit_price;
+
+        const modalElement = document.getElementById('editItemModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+    } catch (error) {
+        console.error('Error fetching item for editing:', error);
+        alert('حدث خطأ أثناء جلب بيانات البند للتعديل.');
+    }
+}
+
+async function deleteItemRecord(itemId) {
+    if (!confirm('هل أنت متأكد من أنك تريد حذف هذا البند؟')) {
+        return;
+    }
+    try {
+        await deleteItem('items', itemId);
+        await renderItemsList();
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        alert('حدث خطأ أثناء حذف البند.');
+    }
+}
+
 // --- Partner Settlements Management ---
 
 document.addEventListener('settlementsPageLoaded', () => {
@@ -1532,3 +1657,295 @@ function setupAddSettlementForm() {
 function deleteSettlement(settlementId) {
     alert(`حذف التسويات غير مدعوم حاليًا لأنه يتطلب عملية معقدة لعكس الأرصدة. (ID: ${settlementId})`);
 }
+
+// --- Invoice Management ---
+
+document.addEventListener('invoicesPageLoaded', () => {
+    renderInvoicesList();
+});
+
+document.addEventListener('createInvoicePageLoaded', () => {
+    setupCreateInvoiceForm();
+});
+
+async function renderInvoicesList() {
+    try {
+        const invoices = await getAllItems('invoices');
+        const tableBody = document.getElementById('invoicesTableBody');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        if (invoices.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">لا يوجد فواتير لعرضها.</td></tr>';
+            return;
+        }
+
+        for (const invoice of invoices) {
+            const client = await getItemById('clients', invoice.client_id);
+            const status_class = invoice.status === 'Paid' ? 'bg-success' : 'bg-danger';
+            const row = `
+                <tr>
+                    <td>#${invoice.invoice_id}</td>
+                    <td>${client ? client.name : 'عميل محذوف'}</td>
+                    <td>${invoice.issue_date}</td>
+                    <td>${invoice.due_date}</td>
+                    <td>${invoice.total_amount.toFixed(2)}</td>
+                    <td><span class="badge ${status_class}">${invoice.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="viewInvoice(${invoice.invoice_id})"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        }
+    } catch (error) {
+        console.error('Error rendering invoices list:', error);
+    }
+}
+
+async function setupCreateInvoiceForm() {
+    const form = document.getElementById('invoiceForm');
+    if (!form) return;
+
+    const clientSelect = document.getElementById('invoiceClient');
+    const lineItemsBody = document.querySelector('#lineItemsTable tbody');
+    const addLineItemBtn = document.getElementById('addInvoiceItemBtn');
+    const taxInput = document.getElementById('invoiceTax');
+
+    document.getElementById('invoiceIssueDate').valueAsDate = new Date();
+
+    const [clients, items] = await Promise.all([getAllItems('clients'), getAllItems('items')]);
+
+    // Populate clients
+    clientSelect.innerHTML = '<option value="">اختر عميلاً...</option>';
+    clients.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.client_id;
+        option.textContent = c.name;
+        clientSelect.appendChild(option);
+    });
+
+    const createLineItemRow = () => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <select class="form-select item-select">
+                    <option value="">اختر بندًا...</option>
+                    ${items.map(i => `<option value="${i.item_id}" data-price="${i.unit_price}">${i.name}</option>`).join('')}
+                </select>
+            </td>
+            <td><input type="number" class="form-control quantity" value="1" min="1"></td>
+            <td><input type="number" class="form-control unit-price" readonly></td>
+            <td><input type="number" class="form-control line-total" readonly></td>
+            <td><button type="button" class="btn btn-sm btn-danger remove-item-btn"><i class="fas fa-trash"></i></button></td>
+        `;
+        lineItemsBody.appendChild(row);
+    };
+
+    addLineItemBtn.addEventListener('click', createLineItemRow);
+
+    lineItemsBody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('item-select')) {
+            const selectedOption = e.target.options[e.target.selectedIndex];
+            const price = selectedOption.dataset.price || 0;
+            const row = e.target.closest('tr');
+            row.querySelector('.unit-price').value = parseFloat(price).toFixed(2);
+            calculateInvoiceTotals();
+        }
+    });
+
+    lineItemsBody.addEventListener('input', (e) => {
+        if (e.target.classList.contains('quantity')) {
+            calculateInvoiceTotals();
+        }
+    });
+
+    lineItemsBody.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-item-btn')) {
+            e.target.closest('tr').remove();
+            calculateInvoiceTotals();
+        }
+    });
+
+    taxInput.addEventListener('input', calculateInvoiceTotals);
+
+    const calculateInvoiceTotals = () => {
+        let subtotal = 0;
+        lineItemsBody.querySelectorAll('tr').forEach(row => {
+            const price = parseFloat(row.querySelector('.unit-price').value) || 0;
+            const quantity = parseInt(row.querySelector('.quantity').value) || 0;
+            const lineTotal = price * quantity;
+            row.querySelector('.line-total').value = lineTotal.toFixed(2);
+            subtotal += lineTotal;
+        });
+
+        const taxPercent = parseFloat(taxInput.value) || 0;
+        const taxAmount = subtotal * (taxPercent / 100);
+        const total = subtotal + taxAmount;
+
+        document.getElementById('invoiceSubtotal').textContent = subtotal.toFixed(2);
+        document.getElementById('invoiceTotal').textContent = total.toFixed(2);
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const lineItems = [];
+        lineItemsBody.querySelectorAll('tr').forEach(row => {
+            const itemId = row.querySelector('.item-select').value;
+            if(itemId) {
+                lineItems.push({
+                    item_id: parseInt(itemId),
+                    quantity: parseInt(row.querySelector('.quantity').value),
+                    unit_price: parseFloat(row.querySelector('.unit-price').value),
+                    line_total: parseFloat(row.querySelector('.line-total').value)
+                });
+            }
+        });
+
+        const newInvoice = {
+            client_id: parseInt(clientSelect.value),
+            issue_date: document.getElementById('invoiceIssueDate').value,
+            due_date: document.getElementById('invoiceDueDate').value,
+            line_items: lineItems,
+            subtotal_amount: parseFloat(document.getElementById('invoiceSubtotal').textContent),
+            tax_amount: parseFloat(document.getElementById('invoiceSubtotal').textContent) * (parseFloat(taxInput.value) / 100),
+            total_amount: parseFloat(document.getElementById('invoiceTotal').textContent),
+            status: 'Unpaid'
+        };
+
+        try {
+            await addItem('invoices', newInvoice);
+            alert('تم حفظ الفاتورة بنجاح!');
+            window.location.href = 'index.html'; // Redirect to main page
+        } catch (error) {
+            console.error('Error saving invoice:', error);
+            alert('حدث خطأ أثناء حفظ الفاتورة.');
+        }
+    });
+
+    // Add one row to start with
+    createLineItemRow();
+}
+
+function viewInvoice(invoiceId) {
+    window.location.href = `view-invoice.html?id=${invoiceId}`;
+}
+
+document.addEventListener('viewInvoicePageLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    const invoiceId = parseInt(params.get('id'));
+    if (!invoiceId) {
+        document.getElementById('invoice-view-container').innerHTML = '<p class="text-danger">لم يتم تحديد فاتورة.</p>';
+        return;
+    }
+
+    try {
+        const invoice = await getItemById('invoices', invoiceId);
+        const client = await getItemById('clients', invoice.client_id);
+
+        // Calculate amount paid so far
+        const transactions = await getAllItems('transactions');
+        const payments = transactions.filter(t => t.linked_invoice_id === invoiceId);
+        const amountPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+        const balanceDue = invoice.total_amount - amountPaid;
+
+        const invoiceHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3">فاتورة #${invoice.invoice_id}</h1>
+                <div>
+                    <a href="index.html" class="btn btn-outline-secondary"><i class="fas fa-arrow-right me-2"></i>العودة</a>
+                    <button class="btn btn-info" onclick="window.print()"><i class="fas fa-print me-2"></i>طباعة</button>
+                </div>
+            </div>
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>العميل:</h5>
+                            <p>${client.name}<br>${client.address || ''}<br>${client.phone || ''}</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p><strong>تاريخ الإصدار:</strong> ${invoice.issue_date}</p>
+                            <p><strong>تاريخ الاستحقاق:</strong> ${invoice.due_date}</p>
+                            <p><strong>الحالة:</strong> <span class="badge bg-primary">${invoice.status}</span></p>
+                        </div>
+                    </div>
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr><th>البند</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th></tr>
+                        </thead>
+                        <tbody>
+                            ${invoice.line_items.map(item => `
+                                <tr>
+                                    <td>${item.item_id}</td> <!-- Should fetch item name -->
+                                    <td>${item.quantity}</td>
+                                    <td>${item.unit_price.toFixed(2)}</td>
+                                    <td>${item.line_total.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="3" class="text-end">المجموع الفرعي</td><td class="text-end">${invoice.subtotal_amount.toFixed(2)}</td></tr>
+                            <tr><td colspan="3" class="text-end">الضريبة</td><td class="text-end">${invoice.tax_amount.toFixed(2)}</td></tr>
+                            <tr class="fw-bold"><td colspan="3" class="text-end">الإجمالي</td><td class="text-end">${invoice.total_amount.toFixed(2)}</td></tr>
+                             <tr class="fw-bold text-success"><td colspan="3" class="text-end">المدفوع</td><td class="text-end">${amountPaid.toFixed(2)}</td></tr>
+                             <tr class="fw-bold text-danger"><td colspan="3" class="text-end">المتبقي</td><td class="text-end">${balanceDue.toFixed(2)}</td></tr>
+                        </tfoot>
+                    </table>
+                    ${balanceDue > 0 ? `<div class="text-end mt-4"><button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">تسجيل دفعة</button></div>` : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('invoice-view-container').innerHTML = invoiceHTML;
+
+        // Setup payment modal
+        if (balanceDue > 0) {
+            document.getElementById('paymentAmount').value = balanceDue.toFixed(2);
+            document.getElementById('paymentDate').valueAsDate = new Date();
+
+            document.getElementById('recordPaymentForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const paymentAmount = parseFloat(document.getElementById('paymentAmount').value);
+
+                // Create transaction
+                const transaction = {
+                    transaction_type: 'قبض',
+                    amount: paymentAmount,
+                    date: document.getElementById('paymentDate').value,
+                    description: `دفعة للفاتورة رقم #${invoice.invoice_id}`,
+                    linked_client_id: client.client_id,
+                    linked_invoice_id: invoice.invoice_id // Custom field to link payment to invoice
+                };
+
+                // Update invoice status
+                const newAmountPaid = amountPaid + paymentAmount;
+                invoice.status = newAmountPaid >= invoice.total_amount ? 'Paid' : 'Partially Paid';
+
+                // Update client balance
+                client.balance -= paymentAmount;
+
+                try {
+                    const tx = db.transaction(['transactions', 'invoices', 'clients'], 'readwrite');
+                    tx.objectStore('transactions').add(transaction);
+                    tx.objectStore('invoices').put(invoice);
+                    tx.objectStore('clients').put(client);
+
+                    await new Promise((resolve, reject) => {
+                        tx.oncomplete = resolve;
+                        tx.onerror = reject;
+                    });
+
+                    alert('تم تسجيل الدفعة بنجاح!');
+                    location.reload();
+                } catch (error) {
+                    console.error('Error recording payment:', error);
+                    alert('حدث خطأ أثناء تسجيل الدفعة.');
+                }
+            });
+        }
+
+    } catch (error) {
+        console.error('Error loading invoice:', error);
+        document.getElementById('invoice-view-container').innerHTML = '<p class="text-danger">حدث خطأ أثناء تحميل الفاتورة.</p>';
+    }
+});

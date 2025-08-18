@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء فاتورة جديدة - برنامج الخزينة</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container-fluid p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">إنشاء فاتورة جديدة</h1>
+            <a href="index.html" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>العودة إلى الرئيسية
+            </a>
+        </div>
+
+        <form id="invoiceForm">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Client and Dates -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="invoiceClient" class="form-label">العميل</label>
+                            <select id="invoiceClient" class="form-select" required></select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="invoiceIssueDate" class="form-label">تاريخ الإصدار</label>
+                            <input type="date" id="invoiceIssueDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="invoiceDueDate" class="form-label">تاريخ الاستحقاق</label>
+                            <input type="date" id="invoiceDueDate" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Line Items Table -->
+                    <h5 class="mb-3">البنود</h5>
+                    <table class="table table-bordered" id="lineItemsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40%;">البند/الخدمة</th>
+                                <th style="width: 15%;">الكمية</th>
+                                <th style="width: 20%;">سعر الوحدة</th>
+                                <th style="width: 20%;">الإجمالي</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Line items will be added here -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4">
+                                    <button type="button" class="btn btn-sm btn-success" id="addInvoiceItemBtn">
+                                        <i class="fas fa-plus"></i> إضافة بند
+                                    </button>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <!-- Totals Section -->
+                    <div class="row justify-content-end mt-4">
+                        <div class="col-md-4">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <th class="w-50">المجموع الفرعي:</th>
+                                            <td id="invoiceSubtotal" class="text-end">0.00</td>
+                                        </tr>
+                                        <tr>
+                                            <th>الضريبة (%):</th>
+                                            <td class="text-end"><input type="number" id="invoiceTax" class="form-control form-control-sm text-end" value="0" step="0.01"></td>
+                                        </tr>
+                                        <tr class="table-primary">
+                                            <th class="fs-5">الإجمالي:</th>
+                                            <td id="invoiceTotal" class="fs-5 fw-bold text-end">0.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="submit" class="btn btn-primary">حفظ الفاتورة</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="js/db.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        // Dispatch event to signal this specific page is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+             document.dispatchEvent(new CustomEvent('createInvoicePageLoaded'));
+        });
+    </script>
+</body>
+</html>

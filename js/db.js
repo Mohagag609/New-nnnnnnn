@@ -1,5 +1,5 @@
 const DB_NAME = 'TreasuryAppDB';
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 let db;
 
 function initDB() {
@@ -59,13 +59,21 @@ function initDB() {
             }
 
             // 7. transactions table
-            if (!db.objectStoreNames.contains('transactions')) {
-                const transactionsStore = db.createObjectStore('transactions', { keyPath: 'transaction_id', autoIncrement: true });
+            const transactionsStoreName = 'transactions';
+            let transactionsStore;
+            if (!db.objectStoreNames.contains(transactionsStoreName)) {
+                transactionsStore = db.createObjectStore(transactionsStoreName, { keyPath: 'transaction_id', autoIncrement: true });
                 transactionsStore.createIndex('date', 'date', { unique: false });
                 transactionsStore.createIndex('transaction_type', 'transaction_type', { unique: false });
                 transactionsStore.createIndex('linked_project_id', 'linked_project_id', { unique: false });
                 transactionsStore.createIndex('linked_client_id', 'linked_client_id', { unique: false });
                 transactionsStore.createIndex('linked_supplier_id', 'linked_supplier_id', { unique: false });
+            } else {
+                transactionsStore = event.target.transaction.objectStore(transactionsStoreName);
+            }
+            // Add new index in version 3
+            if (!transactionsStore.indexNames.contains('linked_invoice_id')) {
+                transactionsStore.createIndex('linked_invoice_id', 'linked_invoice_id', { unique: false });
             }
 
             // 8. settlements table
@@ -73,6 +81,14 @@ function initDB() {
                 const settlementsStore = db.createObjectStore('settlements', { keyPath: 'settlement_id', autoIncrement: true });
                 settlementsStore.createIndex('partner_id', 'partner_id', { unique: false });
                 settlementsStore.createIndex('date', 'date', { unique: false });
+            }
+
+            // 9. invoices table (version 2)
+            if (!db.objectStoreNames.contains('invoices')) {
+                const invoicesStore = db.createObjectStore('invoices', { keyPath: 'invoice_id', autoIncrement: true });
+                invoicesStore.createIndex('client_id', 'client_id', { unique: false });
+                invoicesStore.createIndex('status', 'status', { unique: false });
+                invoicesStore.createIndex('issue_date', 'issue_date', { unique: false });
             }
         };
     });

@@ -1,0 +1,92 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة البنود والخدمات</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addItemModal">
+        <i class="fas fa-plus me-2"></i>إضافة بند جديد
+    </button>
+</div>
+
+<!-- Items Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة البنود</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="itemsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرّف</th>
+                        <th>اسم البند/الخدمة</th>
+                        <th>سعر الوحدة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTableBody">
+                    <!-- Item rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addItemModalLabel">إضافة بند جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addItemForm">
+                    <div class="mb-3">
+                        <label for="itemName" class="form-label">اسم البند/الخدمة</label>
+                        <input type="text" class="form-control" id="itemName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="itemPrice" class="form-label">سعر الوحدة</label>
+                        <input type="number" class="form-control" id="itemPrice" step="0.01" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ البند</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div class="modal fade" id="editItemModal" tabindex="-1" aria-labelledby="editItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editItemModalLabel">تعديل بيانات البند</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm">
+                    <input type="hidden" id="editItemId">
+                    <div class="mb-3">
+                        <label for="editItemName" class="form-label">اسم البند/الخدمة</label>
+                        <input type="text" class="form-control" id="editItemName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editItemPrice" class="form-label">سعر الوحدة</label>
+                        <input type="number" class="form-control" id="editItemPrice" step="0.01" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('itemsPageLoaded'));
+</script>
