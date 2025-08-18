@@ -9,7 +9,10 @@
 <!-- Clients Table -->
 <div class="card shadow-sm">
     <div class="card-header">
-        <h6 class="m-0 font-weight-bold text-primary">قائمة العملاء</h6>
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">قائمة العملاء</h6>
+            <input type="text" id="clientSearchInput" class="form-control form-control-sm w-25" placeholder="بحث...">
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -106,7 +109,5 @@
 </div>
 
 <script>
-    // This script block will be executed when this partial is loaded via HTMX.
-    // We'll add the logic to app.js to handle rendering and form submission.
     document.dispatchEvent(new CustomEvent('clientsPageLoaded'));
 </script>

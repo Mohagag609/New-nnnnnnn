@@ -17,7 +17,13 @@
                 <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts-report" type="button" role="tab">كشف حساب</button>
             </li>
              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-report" type="button" role="tab" disabled>المشاريع</button>
+                <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-report" type="button" role="tab">المشاريع</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="invoices-report-tab" data-bs-toggle="tab" data-bs-target="#invoices-report" type="button" role="tab">الفواتير</button>
+            </li>
+             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="settlements-report-tab" data-bs-toggle="tab" data-bs-target="#settlements-report" type="button" role="tab">تسويات الشركاء</button>
             </li>
         </ul>
     </div>
@@ -73,9 +79,68 @@
                 <div id="clientStatementResult">
                     <p class="text-muted text-center">الرجاء اختيار عميل ثم الضغط على "توليد الكشف" لعرض النتائج.</p>
                 </div>
+                <hr class="my-4">
+                <h5>كشف حساب مورد</h5>
+                <div class="bg-light p-3 rounded mb-4 border">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-8">
+                            <label for="supplierStatementSelect" class="form-label">اختر المورد</label>
+                            <select id="supplierStatementSelect" class="form-select">
+                                <option>جاري التحميل...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="generateSupplierStatement" class="btn btn-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>توليد الكشف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="supplierStatementResult">
+                     <p class="text-muted text-center">الرجاء اختيار مورد ثم الضغط على "توليد الكشف" لعرض النتائج.</p>
+                </div>
             </div>
              <div class="tab-pane fade" id="projects-report" role="tabpanel">
-                <p>سيتم إضافة تقارير المشاريع هنا.</p>
+                <h5>ملخص مالي للمشاريع</h5>
+                <div id="projectsReportResult">
+                    <p class="text-muted text-center">جاري توليد التقرير...</p>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="invoices-report" role="tabpanel">
+                <h5>تقرير الفواتير</h5>
+                 <div class="bg-light p-3 rounded mb-4 border">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-5">
+                            <label for="invoiceStatusFilter" class="form-label">فلترة حسب الحالة</label>
+                            <select id="invoiceStatusFilter" class="form-select">
+                                <option value="all">الكل</option>
+                                <option value="Unpaid">غير مدفوعة</option>
+                                <option value="Paid">مدفوعة</option>
+                                <option value="Partially Paid">مدفوعة جزئيًا</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label for="invoiceClientFilter" class="form-label">فلترة حسب العميل</label>
+                            <select id="invoiceClientFilter" class="form-select">
+                                <option value="all">كل العملاء</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button id="generateInvoicesReport" class="btn btn-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>تطبيق
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="invoicesReportResult">
+                    <p class="text-muted text-center">اختر الفلاتر ثم اضغط "تطبيق" لعرض النتائج.</p>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="settlements-report" role="tabpanel">
+                <h5>تقرير تسويات الشركاء</h5>
+                <div id="settlementsReportResult">
+                    <p class="text-muted text-center">جاري توليد التقرير...</p>
+                </div>
             </div>
         </div>
     </div>

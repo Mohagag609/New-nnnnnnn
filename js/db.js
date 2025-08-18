@@ -71,7 +71,6 @@ function initDB() {
             } else {
                 transactionsStore = event.target.transaction.objectStore(transactionsStoreName);
             }
-            // Add new index in version 3
             if (!transactionsStore.indexNames.contains('linked_invoice_id')) {
                 transactionsStore.createIndex('linked_invoice_id', 'linked_invoice_id', { unique: false });
             }
@@ -83,7 +82,7 @@ function initDB() {
                 settlementsStore.createIndex('date', 'date', { unique: false });
             }
 
-            // 9. invoices table (version 2)
+            // 9. invoices table
             if (!db.objectStoreNames.contains('invoices')) {
                 const invoicesStore = db.createObjectStore('invoices', { keyPath: 'invoice_id', autoIncrement: true });
                 invoicesStore.createIndex('client_id', 'client_id', { unique: false });
@@ -96,8 +95,6 @@ function initDB() {
 
 // Initialize the database when the script is loaded
 initDB().catch(err => console.error(err));
-
-// Generic helper functions for database operations
 
 /**
  * Adds an item to a store.

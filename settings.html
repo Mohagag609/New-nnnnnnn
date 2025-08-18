@@ -38,9 +38,9 @@
     </div>
     <div class="card-body">
         <p class="card-text">
-            هذه الإعدادات ستظهر في رأس وتذييل المستندات المطبوعة (ميزة قادمة).
+            هذه الإعدادات ستظهر في رأس وتذييل المستندات المطبوعة.
         </p>
-        <form>
+        <form id="printSettingsForm">
             <div class="mb-3">
                 <label for="printCompanyName" class="form-label">اسم الشركة (للهيدر)</label>
                 <input type="text" class="form-control" id="printCompanyName" placeholder="اسم شركتك">
@@ -49,7 +49,6 @@
                 <label for="printFooterText" class="form-label">نص التذييل</label>
                 <textarea class="form-control" id="printFooterText" rows="2" placeholder="مثال: جميع الحقوق محفوظة."></textarea>
             </div>
-            <button type="submit" class="btn btn-secondary" disabled>حفظ إعدادات الطباعة (قريبًا)</button>
         </form>
     </div>
 </div>
