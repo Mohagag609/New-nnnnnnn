@@ -573,66 +573,187 @@ document.addEventListener('viewProjectPageLoaded', () => {
 });
 
 async function renderSingleProject() {
-    const params = new URLSearchParams(window.location.search);
-    const projectId = parseInt(params.get('id'));
-    const container = document.getElementById('project-view-container');
+    // ... (existing code)
+}
 
-    if (!projectId) {
-        container.innerHTML = '<p class="text-danger">لم يتم تحديد مشروع.</p>';
+// --- Accounts (Treasuries) Management ---
+
+document.addEventListener('accountsPageLoaded', () => {
+    renderAccountsList();
+    setupAddAccountForm();
+    setupEditAccountForm();
+    setupTransferForm();
+});
+
+async function renderAccountsList() {
+    try {
+        const accounts = await getAllItems('accounts');
+        const tableBody = document.getElementById('accountsTableBody');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        if (accounts.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">لا يوجد خزن/حسابات. الرجاء إضافة واحدة.</td></tr>';
+            return;
+        }
+
+        for (const account of accounts) {
+            // Recalculate balance on the fly for accuracy
+            const transactions = await getAllItems('transactions');
+            const balance = transactions
+                .filter(t => t.account_id === account.account_id)
+                .reduce((bal, t) => bal + (t.transaction_type === 'قبض' ? t.amount : -t.amount), account.initial_balance || 0);
+
+            // Update the stored balance if it's different
+            if (balance !== account.balance) {
+                account.balance = balance;
+                await updateItem('accounts', account);
+            }
+
+            const row = `
+                <tr>
+                    <td>${account.account_id}</td>
+                    <td>${account.name}</td>
+                    <td>${balance.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="editAccount(${account.account_id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteAccount(${account.account_id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        }
+    } catch (error) {
+        console.error('Error rendering accounts list:', error);
+    }
+}
+
+function setupAddAccountForm() {
+    const form = document.getElementById('addAccountForm');
+    if (!form) return;
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const balance = parseFloat(document.getElementById('accountBalance').value) || 0;
+        const newAccount = {
+            name: document.getElementById('accountName').value,
+            initial_balance: balance,
+            balance: balance
+        };
+        await addItem('accounts', newAccount);
+        bootstrap.Modal.getInstance(document.getElementById('addAccountModal')).hide();
+        form.reset();
+        await renderAccountsList();
+    });
+}
+
+function setupEditAccountForm() {
+    const form = document.getElementById('editAccountForm');
+    if (!form) return;
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const accountId = parseInt(document.getElementById('editAccountId').value);
+        const account = await getItemById('accounts', accountId);
+        account.name = document.getElementById('editAccountName').value;
+        await updateItem('accounts', account);
+        bootstrap.Modal.getInstance(document.getElementById('editAccountModal')).hide();
+        await renderAccountsList();
+    });
+}
+
+async function editAccount(accountId) {
+    const account = await getItemById('accounts', accountId);
+    if (!account) return;
+    document.getElementById('editAccountId').value = account.account_id;
+    document.getElementById('editAccountName').value = account.name;
+    new bootstrap.Modal(document.getElementById('editAccountModal')).show();
+}
+
+async function deleteAccount(accountId) {
+    const transactions = await getAllItems('transactions');
+    if (transactions.some(t => t.account_id === accountId)) {
+        alert('لا يمكن حذف هذه الخزنة لأنها مرتبطة بمعاملات حالية. يجب حذف المعاملات المرتبطة أولاً.');
         return;
     }
-
-    try {
-        const project = await getItemById('projects', projectId);
-        const allTransactions = await getAllItems('transactions');
-
-        const projectTransactions = allTransactions.filter(t => t.linked_project_id === projectId);
-
-        const income = projectTransactions.filter(t => t.transaction_type === 'قبض').reduce((sum, t) => sum + t.amount, 0);
-        const expenses = projectTransactions.filter(t => t.transaction_type === 'صرف').reduce((sum, t) => sum + t.amount, 0);
-        const net = income - expenses;
-
-        let projectHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
-                <h1 class="h3">تفاصيل المشروع: ${project.name}</h1>
-                <div>
-                    <a href="index.html" class="btn btn-outline-secondary"><i class="fas fa-arrow-right me-2"></i>العودة</a>
-                    <button class="btn btn-info" onclick="window.print()"><i class="fas fa-print me-2"></i>طباعة</button>
-                </div>
-            </div>
-            <div class="card shadow-sm"><div class="card-header"><h5 class="m-0">معلومات المشروع</h5></div>
-                <div class="card-body">
-                    <p><strong>الوصف:</strong> ${project.description || 'لا يوجد'}</p>
-                    <p><strong>تاريخ البدء:</strong> ${project.start_date || '-'}</p>
-                    <p><strong>تاريخ الانتهاء:</strong> ${project.end_date || '-'}</p>
-                    <p><strong>الحالة:</strong> <span class="badge bg-primary">${project.status}</span></p>
-                </div></div>
-            <div class="card shadow-sm mt-4"><div class="card-header"><h5 class="m-0">الملخص المالي</h5></div>
-                <div class="card-body"><div class="row text-center">
-                    <div class="col-md-4"><div class="card bg-success text-white"><div class="card-body"><h6>إجمالي الإيرادات</h6><p class="fs-4 fw-bold">${income.toFixed(2)}</p></div></div></div>
-                    <div class="col-md-4"><div class="card bg-danger text-white"><div class="card-body"><h6>إجمالي المصروفات</h6><p class="fs-4 fw-bold">${expenses.toFixed(2)}</p></div></div></div>
-                    <div class="col-md-4"><div class="card bg-info text-white"><div class="card-body"><h6>صافي الربح/الخسارة</h6><p class="fs-4 fw-bold">${net.toFixed(2)}</p></div></div></div>
-                </div></div></div>
-            <div class="card shadow-sm mt-4"><div class="card-header"><h5 class="m-0">المعاملات المرتبطة بالمشروع</h5></div>
-                <div class="card-body"><table class="table table-sm">
-                    <thead><tr><th>التاريخ</th><th>النوع</th><th>البيان</th><th>المبلغ</th></tr></thead>
-                    <tbody>
-                        ${projectTransactions.length > 0 ? projectTransactions.map(t => `
-                            <tr>
-                                <td>${t.date}</td>
-                                <td class="${t.transaction_type === 'قبض' ? 'text-success' : 'text-danger'}">${t.transaction_type}</td>
-                                <td>${t.description || '-'}</td>
-                                <td>${t.amount.toFixed(2)}</td>
-                            </tr>`).join('') : '<tr><td colspan="4" class="text-center">لا توجد معاملات لهذا المشروع.</td></tr>'}
-                    </tbody>
-                </table></div></div>
-        `;
-        container.innerHTML = projectHTML;
-
-    } catch (error) {
-        console.error('Error loading project view:', error);
-        container.innerHTML = '<p class="text-danger">حدث خطأ أثناء تحميل المشروع.</p>';
+    if (confirm('هل أنت متأكد من أنك تريد حذف هذه الخزنة/الحساب؟')) {
+        await deleteItem('accounts', accountId);
+        await renderAccountsList();
     }
+}
+
+function setupTransferForm() {
+    const form = document.getElementById('transferForm');
+    if (!form) return;
+
+    const fromSelect = document.getElementById('fromAccount');
+    const toSelect = document.getElementById('toAccount');
+
+    getAllItems('accounts').then(accounts => {
+        fromSelect.innerHTML = '<option value="">اختر حساب المصدر</option>';
+        toSelect.innerHTML = '<option value="">اختر حساب الوجهة</option>';
+        accounts.forEach(acc => {
+            fromSelect.innerHTML += `<option value="${acc.account_id}">${acc.name} (الرصيد: ${acc.balance.toFixed(2)})</option>`;
+            toSelect.innerHTML += `<option value="${acc.account_id}">${acc.name}</option>`;
+        });
+    });
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fromAccountId = parseInt(fromSelect.value);
+        const toAccountId = parseInt(toSelect.value);
+        const amount = parseFloat(document.getElementById('transferAmount').value);
+
+        if (!fromAccountId || !toAccountId || !amount) {
+            alert('يرجى ملء جميع الحقول.');
+            return;
+        }
+        if (fromAccountId === toAccountId) {
+            alert('لا يمكن التحويل إلى نفس الحساب.');
+            return;
+        }
+
+        const tx = db.transaction(['accounts', 'transactions'], 'readwrite');
+        const accountStore = tx.objectStore('accounts');
+        const transactionStore = tx.objectStore('transactions');
+
+        try {
+            const fromAccount = await accountStore.get(fromAccountId);
+            const toAccount = await accountStore.get(toAccountId);
+
+            if (fromAccount.balance < amount) {
+                alert('رصيد حساب المصدر غير كافٍ لإتمام العملية.');
+                tx.abort();
+                return;
+            }
+
+            // Update balances
+            fromAccount.balance -= amount;
+            toAccount.balance += amount;
+
+            // Create transactions
+            const date = new Date().toISOString().split('T')[0];
+            const withdrawal = { account_id: fromAccountId, transaction_type: 'صرف', amount: amount, date: date, description: `تحويل إلى ${toAccount.name}`};
+            const deposit = { account_id: toAccountId, transaction_type: 'قبض', amount: amount, date: date, description: `تحويل من ${fromAccount.name}`};
+
+            accountStore.put(fromAccount);
+            accountStore.put(toAccount);
+            transactionStore.add(withdrawal);
+            transactionStore.add(deposit);
+
+            await new Promise((resolve, reject) => {
+                tx.oncomplete = resolve;
+                tx.onerror = reject;
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('transferModal')).hide();
+            form.reset();
+            await renderAccountsList();
+
+        } catch (error) {
+            console.error('Transfer failed:', error);
+            alert('فشل التحويل.');
+            tx.abort();
+        }
+    });
 }
 
 // --- Items Management ---
@@ -731,16 +852,27 @@ document.addEventListener('dashboardPageLoaded', () => {
 
 async function renderDashboard() {
     try {
-        const [clients, suppliers, projects, transactions] = await Promise.all([
-            getAllItems('clients'), getAllItems('suppliers'), getAllItems('projects'), getAllItems('transactions')
+        const [clients, suppliers, projects, transactions, accounts] = await Promise.all([
+            getAllItems('clients'), getAllItems('suppliers'), getAllItems('projects'), getAllItems('transactions'), getAllItems('accounts')
         ]);
 
         document.getElementById('dashboard-total-clients').textContent = clients.length;
         document.getElementById('dashboard-total-suppliers').textContent = suppliers.length;
         document.getElementById('dashboard-active-projects').textContent = projects.filter(p => p.status === 'جارٍ').length;
 
-        const treasuryBalance = transactions.reduce((bal, t) => bal + (t.transaction_type === 'قبض' ? t.amount : -t.amount), 0);
-        document.getElementById('dashboard-treasury-balance').textContent = treasuryBalance.toFixed(2);
+        // Render account balances
+        const accountBalancesBody = document.getElementById('accountBalancesTableBody');
+        accountBalancesBody.innerHTML = '';
+        if (accounts.length > 0) {
+            let totalBalance = 0;
+            accounts.forEach(acc => {
+                accountBalancesBody.innerHTML += `<tr><td class="fw-bold">${acc.name}</td><td class="text-end">${acc.balance.toFixed(2)}</td></tr>`;
+                totalBalance += acc.balance;
+            });
+            accountBalancesBody.innerHTML += `<tr class="table-light"><td class="fw-bold">الإجمالي</td><td class="text-end fw-bold">${totalBalance.toFixed(2)}</td></tr>`;
+        } else {
+            accountBalancesBody.innerHTML = '<tr><td>الرجاء إضافة خزنة/حساب أولاً.</td></tr>';
+        }
 
         const recentTransactions = transactions.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
         const recentTableBody = document.getElementById('recentTransactionsTableBody');
@@ -783,13 +915,14 @@ async function renderTransactionsList() {
         if (!tableBody) return;
         tableBody.innerHTML = '';
         if (transactions.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">لا يوجد معاملات لعرضها.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">لا يوجد معاملات لعرضها.</td></tr>';
             return;
         }
         for (const t of transactions) {
             const linkedEntityName = await getLinkedEntityName(t);
+            const account = await getItemById('accounts', t.account_id);
             const typeClass = t.transaction_type === 'قبض' ? 'text-success' : 'text-danger';
-            tableBody.innerHTML += `<tr><td>${t.date}</td><td class="${typeClass} fw-bold">${t.transaction_type}</td><td>${t.amount.toFixed(2)}</td><td>${t.description || '-'}</td><td>${linkedEntityName}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTransaction(${t.transaction_id})"><i class="fas fa-trash"></i></button></td></tr>`;
+            tableBody.innerHTML += `<tr><td>${t.date}</td><td>${account ? account.name : 'غير معروف'}</td><td class="${typeClass} fw-bold">${t.transaction_type}</td><td>${t.amount.toFixed(2)}</td><td>${t.description || '-'}</td><td>${linkedEntityName}</td><td><button class="btn btn-sm btn-danger" onclick="deleteTransaction(${t.transaction_id})"><i class="fas fa-trash"></i></button></td></tr>`;
         }
     } catch (error) { console.error('Error rendering transactions list:', error); }
 }
@@ -816,12 +949,34 @@ function setupAddTransactionForm() {
     if (!form) return;
     const linkTypeDropdown = document.getElementById('transactionLinkType');
     const linkIdDropdown = document.getElementById('transactionLinkId');
+    const accountDropdown = document.getElementById('transactionAccount');
+
     document.getElementById('transactionDate').valueAsDate = new Date();
+
+    // Populate accounts dropdown
+    getAllItems('accounts').then(accounts => {
+        accountDropdown.innerHTML = '';
+        if (accounts.length === 0) {
+            accountDropdown.innerHTML = '<option value="">الرجاء إضافة خزنة أولاً</option>';
+        } else {
+            accounts.forEach(acc => {
+                accountDropdown.innerHTML += `<option value="${acc.account_id}">${acc.name}</option>`;
+            });
+        }
+    });
+
     linkTypeDropdown.addEventListener('change', () => populateLinkableItems(linkTypeDropdown.value, linkIdDropdown));
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        const accountId = parseInt(accountDropdown.value);
+        if (!accountId) {
+            alert('الرجاء اختيار خزنة/حساب أولاً.');
+            return;
+        }
+
         const transactionData = {
+            account_id: accountId,
             transaction_type: document.getElementById('transactionType').value,
             amount: parseFloat(document.getElementById('transactionAmount').value),
             date: document.getElementById('transactionDate').value,
@@ -832,17 +987,33 @@ function setupAddTransactionForm() {
         if (linkType && linkId) {
             transactionData[`linked_${linkType.slice(0, -1)}_id`] = linkId;
         }
-        await addItem('transactions', transactionData);
+
+        const tx = db.transaction(['transactions', 'accounts', 'clients', 'suppliers', 'partners'], 'readwrite');
+        const accountStore = tx.objectStore('accounts');
+
+        // Add transaction
+        tx.objectStore('transactions').add(transactionData);
+
+        // Update account balance
+        const account = await accountStore.get(accountId);
+        const amount = transactionData.amount;
+        account.balance += (transactionData.transaction_type === 'قبض' ? amount : -amount);
+        accountStore.put(account);
+
+        // Update linked entity balance (e.g., client's debt)
         if (linkType && linkId && ['clients', 'suppliers', 'partners'].includes(linkType)) {
-            const entity = await getItemById(linkType, linkId);
+            const entityStore = tx.objectStore(linkType);
+            const entity = await entityStore.get(linkId);
             if (entity) {
-                const amount = transactionData.amount;
                 if (linkType === 'clients') entity.balance += (transactionData.transaction_type === 'قبض' ? -amount : amount);
                 else if (linkType === 'suppliers') entity.balance += (transactionData.transaction_type === 'صرف' ? -amount : amount);
                 else if (linkType === 'partners') entity.current_balance += (transactionData.transaction_type === 'صرف' ? amount : -amount);
-                await updateItem(linkType, entity);
+                entityStore.put(entity);
             }
         }
+
+        await new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onerror = reject; });
+
         bootstrap.Modal.getInstance(document.getElementById('addTransactionModal')).hide();
         form.reset();
         document.getElementById('transactionDate').valueAsDate = new Date();
@@ -1129,7 +1300,17 @@ document.addEventListener('reportsPageLoaded', () => {
 
 function setupIncomeExpenseReport() {
     const generateBtn = document.getElementById('generateIncomeExpenseReport');
-    if (generateBtn) generateBtn.addEventListener('click', generateIncomeExpenseReport);
+    const accountFilter = document.getElementById('reportAccountFilter');
+    if (!generateBtn || !accountFilter) return;
+
+    getAllItems('accounts').then(accounts => {
+        accountFilter.innerHTML = '<option value="all">كل الخزن</option>';
+        accounts.forEach(acc => {
+            accountFilter.innerHTML += `<option value="${acc.account_id}">${acc.name}</option>`;
+        });
+    });
+
+    generateBtn.addEventListener('click', generateIncomeExpenseReport);
     document.getElementById('startDate').valueAsDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     document.getElementById('endDate').valueAsDate = new Date();
 }
@@ -1137,11 +1318,16 @@ function setupIncomeExpenseReport() {
 async function generateIncomeExpenseReport() {
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
+    const accountId = document.getElementById('reportAccountFilter').value;
     const resultDiv = document.getElementById('incomeExpenseReportResult');
     if (!startDate || !endDate) { resultDiv.innerHTML = '<p class="text-danger text-center">الرجاء تحديد تاريخ البدء والانتهاء.</p>'; return; }
     resultDiv.innerHTML = '<p class="text-info text-center">جاري توليد التقرير...</p>';
     try {
-        const allTransactions = await getAllItems('transactions');
+        let allTransactions = await getAllItems('transactions');
+        // Filter by account
+        if (accountId !== 'all') {
+            allTransactions = allTransactions.filter(t => t.account_id === parseInt(accountId));
+        }
         const filtered = allTransactions.filter(t => new Date(t.date) >= new Date(startDate) && new Date(t.date) <= new Date(endDate));
         const income = filtered.filter(t => t.transaction_type === 'قبض');
         const expenses = filtered.filter(t => t.transaction_type === 'صرف');

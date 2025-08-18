@@ -1,5 +1,5 @@
 const DB_NAME = 'TreasuryAppDB';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 let db;
 
 function initDB() {
@@ -74,6 +74,10 @@ function initDB() {
             if (!transactionsStore.indexNames.contains('linked_invoice_id')) {
                 transactionsStore.createIndex('linked_invoice_id', 'linked_invoice_id', { unique: false });
             }
+            // Add new index in version 4
+            if (!transactionsStore.indexNames.contains('account_id')) {
+                transactionsStore.createIndex('account_id', 'account_id', { unique: false });
+            }
 
             // 8. settlements table
             if (!db.objectStoreNames.contains('settlements')) {
@@ -88,6 +92,12 @@ function initDB() {
                 invoicesStore.createIndex('client_id', 'client_id', { unique: false });
                 invoicesStore.createIndex('status', 'status', { unique: false });
                 invoicesStore.createIndex('issue_date', 'issue_date', { unique: false });
+            }
+
+            // 10. accounts table (version 4)
+            if (!db.objectStoreNames.contains('accounts')) {
+                const accountsStore = db.createObjectStore('accounts', { keyPath: 'account_id', autoIncrement: true });
+                accountsStore.createIndex('name', 'name', { unique: true });
             }
         };
     });

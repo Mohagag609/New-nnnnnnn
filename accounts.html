@@ -1,0 +1,126 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة الخزن والحسابات</h1>
+    <div>
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#transferModal">
+            <i class="fas fa-exchange-alt me-2"></i>تحويل بين الخزن
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+            <i class="fas fa-plus me-2"></i>إضافة خزنة/حساب جديد
+        </button>
+    </div>
+</div>
+
+<!-- Accounts Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة الخزن/الحسابات</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="accountsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرّف</th>
+                        <th>اسم الخزنة/الحساب</th>
+                        <th>الرصيد الحالي</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="accountsTableBody">
+                    <!-- Account rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Account Modal -->
+<div class="modal fade" id="addAccountModal" tabindex="-1" aria-labelledby="addAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAccountModalLabel">إضافة خزنة/حساب جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAccountForm">
+                    <div class="mb-3">
+                        <label for="accountName" class="form-label">اسم الخزنة/الحساب</label>
+                        <input type="text" class="form-control" id="accountName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="accountBalance" class="form-label">الرصيد الافتتاحي</label>
+                        <input type="number" class="form-control" id="accountBalance" value="0" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Account Modal -->
+<div class="modal fade" id="editAccountModal" tabindex="-1" aria-labelledby="editAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editAccountModalLabel">تعديل اسم الخزنة/الحساب</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editAccountForm">
+                    <input type="hidden" id="editAccountId">
+                    <div class="mb-3">
+                        <label for="editAccountName" class="form-label">الاسم الجديد</label>
+                        <input type="text" class="form-control" id="editAccountName" required>
+                    </div>
+                    <p class="text-muted small">ملاحظة: لا يمكن تعديل الرصيد من هنا. استخدم عمليات الإيداع والسحب أو التحويلات لتعديل الرصيد.</p>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transferModalLabel">تحويل أموال بين الخزن</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="transferForm">
+                    <div class="mb-3">
+                        <label for="fromAccount" class="form-label">من حساب/خزنة</label>
+                        <select id="fromAccount" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="toAccount" class="form-label">إلى حساب/خزنة</label>
+                        <select id="toAccount" class="form-select" required></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transferAmount" class="form-label">المبلغ</label>
+                        <input type="number" class="form-control" id="transferAmount" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">تنفيذ التحويل</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('accountsPageLoaded'));
+</script>

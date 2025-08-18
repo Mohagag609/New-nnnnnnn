@@ -17,6 +17,7 @@
                 <thead>
                     <tr>
                         <th>التاريخ</th>
+                        <th>الخزنة/الحساب</th>
                         <th>النوع</th>
                         <th>المبلغ</th>
                         <th>البيان</th>
@@ -43,14 +44,18 @@
             <div class="modal-body">
                 <form id="addTransactionForm">
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="transactionAccount" class="form-label">الخزنة/الحساب</label>
+                            <select class="form-select" id="transactionAccount" required></select>
+                        </div>
+                        <div class="col-md-4 mb-3">
                             <label for="transactionType" class="form-label">نوع المعاملة</label>
                             <select class="form-select" id="transactionType" required>
                                 <option value="قبض">قبض (إيراد)</option>
                                 <option value="صرف">صرف (مصروف)</option>
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="transactionAmount" class="form-label">المبلغ</label>
                             <input type="number" class="form-control" id="transactionAmount" step="0.01" required>
                         </div>
