@@ -68,6 +68,43 @@
     </div>
 </div>
 
+<!-- Edit Client Modal -->
+<div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editClientModalLabel">تعديل بيانات العميل</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editClientForm">
+                    <input type="hidden" id="editClientId">
+                    <div class="mb-3">
+                        <label for="editClientName" class="form-label">اسم العميل</label>
+                        <input type="text" class="form-control" id="editClientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClientPhone" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="editClientPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClientAddress" class="form-label">العنوان</label>
+                        <textarea class="form-control" id="editClientAddress" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editClientBalance" class="form-label">الرصيد</label>
+                        <input type="number" class="form-control" id="editClientBalance" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // This script block will be executed when this partial is loaded via HTMX.
     // We'll add the logic to app.js to handle rendering and form submission.

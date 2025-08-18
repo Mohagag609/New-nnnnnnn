@@ -11,7 +11,7 @@
                 <button class="nav-link active" id="income-expense-tab" data-bs-toggle="tab" data-bs-target="#income-expense-report" type="button" role="tab">الإيرادات والمصروفات</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts-report" type="button" role="tab" disabled>حسابات العملاء/الموردين</button>
+                <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts-report" type="button" role="tab">كشف حساب</button>
             </li>
              <li class="nav-item" role="presentation">
                 <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-report" type="button" role="tab" disabled>المشاريع</button>
@@ -47,9 +47,29 @@
                 </div>
             </div>
 
-            <!-- Other Report Tabs (currently disabled) -->
+            <!-- Client/Supplier Account Statement Tab -->
             <div class="tab-pane fade" id="accounts-report" role="tabpanel">
-                <p>سيتم إضافة تقارير حسابات العملاء والموردين هنا.</p>
+                 <h5>كشف حساب عميل</h5>
+                <div class="bg-light p-3 rounded mb-4 border">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-8">
+                            <label for="clientStatementSelect" class="form-label">اختر العميل</label>
+                            <select id="clientStatementSelect" class="form-select">
+                                <option>جاري التحميل...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="generateClientStatement" class="btn btn-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>توليد الكشف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Results Area -->
+                <div id="clientStatementResult">
+                    <p class="text-muted text-center">الرجاء اختيار عميل ثم الضغط على "توليد الكشف" لعرض النتائج.</p>
+                </div>
             </div>
              <div class="tab-pane fade" id="projects-report" role="tabpanel">
                 <p>سيتم إضافة تقارير المشاريع هنا.</p>

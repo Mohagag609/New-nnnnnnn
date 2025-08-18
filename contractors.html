@@ -58,6 +58,35 @@
     </div>
 </div>
 
+<!-- Edit Contractor Modal -->
+<div class="modal fade" id="editContractorModal" tabindex="-1" aria-labelledby="editContractorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editContractorModalLabel">تعديل بيانات المقاول</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editContractorForm">
+                    <input type="hidden" id="editContractorId">
+                    <div class="mb-3">
+                        <label for="editContractorName" class="form-label">اسم المقاول</label>
+                        <input type="text" class="form-control" id="editContractorName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editContractorContact" class="form-label">معلومات التواصل</label>
+                        <textarea class="form-control" id="editContractorContact" rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.dispatchEvent(new CustomEvent('contractorsPageLoaded'));
 </script>

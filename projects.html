@@ -79,6 +79,53 @@
     </div>
 </div>
 
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProjectModalLabel">تعديل بيانات المشروع</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProjectForm">
+                    <input type="hidden" id="editProjectId">
+                    <div class="mb-3">
+                        <label for="editProjectName" class="form-label">اسم المشروع</label>
+                        <input type="text" class="form-control" id="editProjectName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProjectDescription" class="form-label">وصف المشروع</label>
+                        <textarea class="form-control" id="editProjectDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editProjectStartDate" class="form-label">تاريخ البدء</label>
+                            <input type="date" class="form-control" id="editProjectStartDate">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editProjectEndDate" class="form-label">تاريخ الانتهاء</label>
+                            <input type="date" class="form-control" id="editProjectEndDate">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProjectStatus" class="form-label">حالة المشروع</label>
+                        <select class="form-select" id="editProjectStatus" required>
+                            <option value="جارٍ">جارٍ</option>
+                            <option value="مكتمل">مكتمل</option>
+                            <option value="متوقف">متوقف</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.dispatchEvent(new CustomEvent('projectsPageLoaded'));
 </script>

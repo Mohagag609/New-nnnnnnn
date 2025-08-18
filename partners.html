@@ -63,6 +63,39 @@
     </div>
 </div>
 
+<!-- Edit Partner Modal -->
+<div class="modal fade" id="editPartnerModal" tabindex="-1" aria-labelledby="editPartnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPartnerModalLabel">تعديل بيانات الشريك</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPartnerForm">
+                    <input type="hidden" id="editPartnerId">
+                    <div class="mb-3">
+                        <label for="editPartnerName" class="form-label">اسم الشريك</label>
+                        <input type="text" class="form-control" id="editPartnerName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPartnerShare" class="form-label">نسبة المشاركة (%)</label>
+                        <input type="number" class="form-control" id="editPartnerShare" min="0" max="100" step="0.01" required>
+                    </div>
+                     <div class="mb-3">
+                        <label for="editPartnerBalance" class="form-label">الرصيد الحالي</label>
+                        <input type="number" class="form-control" id="editPartnerBalance" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.dispatchEvent(new CustomEvent('partnersPageLoaded'));
 </script>

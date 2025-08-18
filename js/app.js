@@ -29,6 +29,7 @@ window.addEventListener('DOMContentLoaded', event => {
 document.addEventListener('clientsPageLoaded', () => {
     renderClientsList();
     setupAddClientForm();
+    setupEditClientForm();
 });
 
 // Renders the list of clients in the table
@@ -132,13 +133,61 @@ async function deleteClient(clientId) {
     }
 }
 
-// Placeholder for edit functionality
-function editClient(clientId) {
-    alert(`ستتم إضافة وظيفة تعديل العميل (ID: ${clientId}) لاحقًا.`);
-    // Implementation will involve:
-    // 1. Fetching the client data using getItemById('clients', clientId).
-    // 2. Populating a modal (can be the same 'add' modal, but in 'edit' mode) with the data.
-    // 3. Changing the form handler to use `updateItem` instead of `addItem`.
+function setupEditClientForm() {
+    const editClientForm = document.getElementById('editClientForm');
+    if (!editClientForm) return;
+
+    editClientForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const clientId = parseInt(document.getElementById('editClientId').value);
+
+        const updatedClient = {
+            client_id: clientId,
+            name: document.getElementById('editClientName').value,
+            phone: document.getElementById('editClientPhone').value,
+            address: document.getElementById('editClientAddress').value,
+            balance: parseFloat(document.getElementById('editClientBalance').value)
+        };
+
+        try {
+            await updateItem('clients', updatedClient);
+
+            const modalElement = document.getElementById('editClientModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            await renderClientsList();
+        } catch (error) {
+            console.error('Error updating client:', error);
+            alert('حدث خطأ أثناء تحديث بيانات العميل.');
+        }
+    });
+}
+
+async function editClient(clientId) {
+    try {
+        const client = await getItemById('clients', clientId);
+        if (!client) {
+            alert('لم يتم العثور على العميل.');
+            return;
+        }
+
+        // Populate the edit form
+        document.getElementById('editClientId').value = client.client_id;
+        document.getElementById('editClientName').value = client.name;
+        document.getElementById('editClientPhone').value = client.phone;
+        document.getElementById('editClientAddress').value = client.address;
+        document.getElementById('editClientBalance').value = client.balance;
+
+        // Show the modal
+        const modalElement = document.getElementById('editClientModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+    } catch (error) {
+        console.error('Error fetching client for editing:', error);
+        alert('حدث خطأ أثناء جلب بيانات العميل للتعديل.');
+    }
 }
 
 // --- Supplier Management ---
@@ -146,6 +195,7 @@ function editClient(clientId) {
 document.addEventListener('suppliersPageLoaded', () => {
     renderSuppliersList();
     setupAddSupplierForm();
+    setupEditSupplierForm();
 });
 
 async function renderSuppliersList() {
@@ -229,8 +279,59 @@ async function deleteSupplier(supplierId) {
     }
 }
 
-function editSupplier(supplierId) {
-    alert(`ستتم إضافة وظيفة تعديل المورد (ID: ${supplierId}) لاحقًا.`);
+function setupEditSupplierForm() {
+    const editSupplierForm = document.getElementById('editSupplierForm');
+    if (!editSupplierForm) return;
+
+    editSupplierForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const supplierId = parseInt(document.getElementById('editSupplierId').value);
+
+        const updatedSupplier = {
+            supplier_id: supplierId,
+            name: document.getElementById('editSupplierName').value,
+            phone: document.getElementById('editSupplierPhone').value,
+            address: document.getElementById('editSupplierAddress').value,
+            balance: parseFloat(document.getElementById('editSupplierBalance').value)
+        };
+
+        try {
+            await updateItem('suppliers', updatedSupplier);
+
+            const modalElement = document.getElementById('editSupplierModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            await renderSuppliersList();
+        } catch (error) {
+            console.error('Error updating supplier:', error);
+            alert('حدث خطأ أثناء تحديث بيانات المورد.');
+        }
+    });
+}
+
+async function editSupplier(supplierId) {
+    try {
+        const supplier = await getItemById('suppliers', supplierId);
+        if (!supplier) {
+            alert('لم يتم العثور على المورد.');
+            return;
+        }
+
+        document.getElementById('editSupplierId').value = supplier.supplier_id;
+        document.getElementById('editSupplierName').value = supplier.name;
+        document.getElementById('editSupplierPhone').value = supplier.phone;
+        document.getElementById('editSupplierAddress').value = supplier.address;
+        document.getElementById('editSupplierBalance').value = supplier.balance;
+
+        const modalElement = document.getElementById('editSupplierModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+    } catch (error) {
+        console.error('Error fetching supplier for editing:', error);
+        alert('حدث خطأ أثناء جلب بيانات المورد للتعديل.');
+    }
 }
 
 // --- Partner Management ---
@@ -238,6 +339,7 @@ function editSupplier(supplierId) {
 document.addEventListener('partnersPageLoaded', () => {
     renderPartnersList();
     setupAddPartnerForm();
+    setupEditPartnerForm();
 });
 
 async function renderPartnersList() {
@@ -320,8 +422,65 @@ async function deletePartner(partnerId) {
     }
 }
 
-function editPartner(partnerId) {
-    alert(`ستتم إضافة وظيفة تعديل الشريك (ID: ${partnerId}) لاحقًا.`);
+function setupEditPartnerForm() {
+    const editPartnerForm = document.getElementById('editPartnerForm');
+    if (!editPartnerForm) return;
+
+    editPartnerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const partnerId = parseInt(document.getElementById('editPartnerId').value);
+
+        // Fetch the original partner to preserve the previous_balance
+        const originalPartner = await getItemById('partners', partnerId);
+        if(!originalPartner) {
+            alert('خطأ: لم يتم العثور على الشريك الأصلي.');
+            return;
+        }
+
+        const updatedPartner = {
+            partner_id: partnerId,
+            name: document.getElementById('editPartnerName').value,
+            share_percentage: parseFloat(document.getElementById('editPartnerShare').value),
+            current_balance: parseFloat(document.getElementById('editPartnerBalance').value),
+            previous_balance: originalPartner.previous_balance // Preserve the original previous_balance
+        };
+
+        try {
+            await updateItem('partners', updatedPartner);
+
+            const modalElement = document.getElementById('editPartnerModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            await renderPartnersList();
+        } catch (error) {
+            console.error('Error updating partner:', error);
+            alert('حدث خطأ أثناء تحديث بيانات الشريك.');
+        }
+    });
+}
+
+async function editPartner(partnerId) {
+    try {
+        const partner = await getItemById('partners', partnerId);
+        if (!partner) {
+            alert('لم يتم العثور على الشريك.');
+            return;
+        }
+
+        document.getElementById('editPartnerId').value = partner.partner_id;
+        document.getElementById('editPartnerName').value = partner.name;
+        document.getElementById('editPartnerShare').value = partner.share_percentage;
+        document.getElementById('editPartnerBalance').value = partner.current_balance;
+
+        const modalElement = document.getElementById('editPartnerModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+    } catch (error) {
+        console.error('Error fetching partner for editing:', error);
+        alert('حدث خطأ أثناء جلب بيانات الشريك للتعديل.');
+    }
 }
 
 // --- Project Management ---
@@ -329,6 +488,7 @@ function editPartner(partnerId) {
 document.addEventListener('projectsPageLoaded', () => {
     renderProjectsList();
     setupAddProjectForm();
+    setupEditProjectForm();
 });
 
 async function renderProjectsList() {
@@ -414,8 +574,61 @@ async function deleteProject(projectId) {
     }
 }
 
-function editProject(projectId) {
-    alert(`ستتم إضافة وظيفة تعديل المشروع (ID: ${projectId}) لاحقًا.`);
+function setupEditProjectForm() {
+    const editProjectForm = document.getElementById('editProjectForm');
+    if (!editProjectForm) return;
+
+    editProjectForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const projectId = parseInt(document.getElementById('editProjectId').value);
+
+        const updatedProject = {
+            project_id: projectId,
+            name: document.getElementById('editProjectName').value,
+            description: document.getElementById('editProjectDescription').value,
+            start_date: document.getElementById('editProjectStartDate').value,
+            end_date: document.getElementById('editProjectEndDate').value,
+            status: document.getElementById('editProjectStatus').value,
+        };
+
+        try {
+            await updateItem('projects', updatedProject);
+
+            const modalElement = document.getElementById('editProjectModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            await renderProjectsList();
+        } catch (error) {
+            console.error('Error updating project:', error);
+            alert('حدث خطأ أثناء تحديث بيانات المشروع.');
+        }
+    });
+}
+
+async function editProject(projectId) {
+    try {
+        const project = await getItemById('projects', projectId);
+        if (!project) {
+            alert('لم يتم العثور على المشروع.');
+            return;
+        }
+
+        document.getElementById('editProjectId').value = project.project_id;
+        document.getElementById('editProjectName').value = project.name;
+        document.getElementById('editProjectDescription').value = project.description;
+        document.getElementById('editProjectStartDate').value = project.start_date;
+        document.getElementById('editProjectEndDate').value = project.end_date;
+        document.getElementById('editProjectStatus').value = project.status;
+
+        const modalElement = document.getElementById('editProjectModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+    } catch (error) {
+        console.error('Error fetching project for editing:', error);
+        alert('حدث خطأ أثناء جلب بيانات المشروع للتعديل.');
+    }
 }
 
 // --- Contractor Management ---
@@ -423,6 +636,7 @@ function editProject(projectId) {
 document.addEventListener('contractorsPageLoaded', () => {
     renderContractorsList();
     setupAddContractorForm();
+    setupEditContractorForm();
 });
 
 async function renderContractorsList() {
@@ -502,8 +716,55 @@ async function deleteContractor(contractorId) {
     }
 }
 
-function editContractor(contractorId) {
-    alert(`ستتم إضافة وظيفة تعديل المقاول (ID: ${contractorId}) لاحقًا.`);
+function setupEditContractorForm() {
+    const editContractorForm = document.getElementById('editContractorForm');
+    if (!editContractorForm) return;
+
+    editContractorForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const contractorId = parseInt(document.getElementById('editContractorId').value);
+
+        const updatedContractor = {
+            contractor_id: contractorId,
+            name: document.getElementById('editContractorName').value,
+            contact_info: document.getElementById('editContractorContact').value,
+        };
+
+        try {
+            await updateItem('contractors', updatedContractor);
+
+            const modalElement = document.getElementById('editContractorModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+
+            await renderContractorsList();
+        } catch (error) {
+            console.error('Error updating contractor:', error);
+            alert('حدث خطأ أثناء تحديث بيانات المقاول.');
+        }
+    });
+}
+
+async function editContractor(contractorId) {
+    try {
+        const contractor = await getItemById('contractors', contractorId);
+        if (!contractor) {
+            alert('لم يتم العثور على المقاول.');
+            return;
+        }
+
+        document.getElementById('editContractorId').value = contractor.contractor_id;
+        document.getElementById('editContractorName').value = contractor.name;
+        document.getElementById('editContractorContact').value = contractor.contact_info;
+
+        const modalElement = document.getElementById('editContractorModal');
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+
+    } catch (error) {
+        console.error('Error fetching contractor for editing:', error);
+        alert('حدث خطأ أثناء جلب بيانات المقاول للتعديل.');
+    }
 }
 
 // --- Settings & Data Management ---
@@ -638,7 +899,7 @@ async function importDataFromJSON(event) {
 // --- Reports Management ---
 
 document.addEventListener('reportsPageLoaded', () => {
-    // Set default dates
+    // Setup for Income/Expense Report
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     const today = new Date();
@@ -647,12 +908,123 @@ document.addEventListener('reportsPageLoaded', () => {
     if (startDateInput) startDateInput.valueAsDate = firstDayOfMonth;
     if (endDateInput) endDateInput.valueAsDate = today;
 
-    // Setup button listener
-    const generateBtn = document.getElementById('generateIncomeExpenseReport');
-    if (generateBtn) {
-        generateBtn.addEventListener('click', generateIncomeExpenseReport);
+    const generateIncomeExpenseBtn = document.getElementById('generateIncomeExpenseReport');
+    if (generateIncomeExpenseBtn) {
+        generateIncomeExpenseBtn.addEventListener('click', generateIncomeExpenseReport);
     }
+
+    // Setup for Client Statement Report
+    setupClientStatementGenerator();
 });
+
+function setupClientStatementGenerator() {
+    const clientSelect = document.getElementById('clientStatementSelect');
+    const generateBtn = document.getElementById('generateClientStatement');
+
+    if (!clientSelect || !generateBtn) return;
+
+    // Populate clients dropdown
+    getAllItems('clients').then(clients => {
+        clientSelect.innerHTML = '<option value="">اختر عميلاً...</option>';
+        clients.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.client_id;
+            option.textContent = c.name;
+            clientSelect.appendChild(option);
+        });
+    });
+
+    generateBtn.addEventListener('click', generateClientStatement);
+}
+
+async function generateClientStatement() {
+    const clientId = document.getElementById('clientStatementSelect').value;
+    const resultDiv = document.getElementById('clientStatementResult');
+
+    if (!clientId) {
+        resultDiv.innerHTML = '<p class="text-danger text-center">الرجاء اختيار عميل أولاً.</p>';
+        return;
+    }
+
+    resultDiv.innerHTML = '<p class="text-info text-center">جاري توليد الكشف...</p>';
+
+    try {
+        const client = await getItemById('clients', parseInt(clientId));
+        const allTransactions = await getAllItems('transactions');
+
+        const clientTransactions = allTransactions
+            .filter(t => t.linked_client_id === client.client_id)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        let statementHTML = `
+            <h4>كشف حساب للعميل: ${client.name}</h4>
+            <p><strong>الرصيد الحالي: ${client.balance.toFixed(2)}</strong></p>
+            <table class="table table-sm table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>البيان</th>
+                        <th>مدين (له)</th>
+                        <th>دائن (عليه)</th>
+                        <th>الرصيد</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        // This is a simplified running balance calculation.
+        // A real accounting system would be more complex.
+        // Let's assume the current balance is correct and work backwards.
+        let runningBalance = client.balance;
+
+        // To calculate the running balance correctly, we need to find the balance at the start of the transaction list.
+        // We can derive it by taking the current balance and reversing the transactions.
+        let openingBalance = client.balance;
+        [...clientTransactions].reverse().forEach(t => {
+             if (t.transaction_type === 'قبض') { // Receipt from client (decreased balance)
+                openingBalance += t.amount;
+            } else { // Payment to client (increased balance)
+                openingBalance -= t.amount;
+            }
+        });
+
+        statementHTML += `
+            <tr>
+                <td colspan="4" class="text-end fw-bold">رصيد افتتاحي</td>
+                <td class="fw-bold">${openingBalance.toFixed(2)}</td>
+            </tr>
+        `;
+
+        runningBalance = openingBalance;
+        clientTransactions.forEach(t => {
+            let debit = '';
+            let credit = '';
+            if (t.transaction_type === 'قبض') { // Receipt from client (Payment FROM them) -> Credit
+                credit = t.amount.toFixed(2);
+                runningBalance -= t.amount;
+            } else { // Payment TO client (e.g. refund) -> Debit
+                debit = t.amount.toFixed(2);
+                runningBalance += t.amount;
+            }
+            statementHTML += `
+                <tr>
+                    <td>${t.date}</td>
+                    <td>${t.description || t.transaction_type}</td>
+                    <td>${debit}</td>
+                    <td>${credit}</td>
+                    <td>${runningBalance.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        statementHTML += '</tbody></table>';
+        resultDiv.innerHTML = statementHTML;
+
+    } catch (error) {
+        console.error('Error generating client statement:', error);
+        resultDiv.innerHTML = '<p class="text-danger text-center">حدث خطأ أثناء توليد الكشف.</p>';
+    }
+}
 
 async function generateIncomeExpenseReport() {
     const startDate = document.getElementById('startDate').value;
@@ -1011,4 +1383,152 @@ async function deleteTransaction(transactionId) {
         console.error('Error deleting transaction:', error);
         alert('حدث خطأ أثناء حذف المعاملة.');
     }
+}
+
+// --- Partner Settlements Management ---
+
+document.addEventListener('settlementsPageLoaded', () => {
+    renderSettlementsList();
+    setupAddSettlementForm();
+});
+
+async function renderSettlementsList() {
+    try {
+        const settlements = await getAllItems('settlements');
+        const tableBody = document.getElementById('settlementsTableBody');
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+
+        if (settlements.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">لا يوجد تسويات لعرضها.</td></tr>';
+            return;
+        }
+
+        for (const settlement of settlements) {
+            const partner = await getItemById('partners', settlement.partner_id);
+            const row = `
+                <tr>
+                    <td>${settlement.date}</td>
+                    <td>${partner ? partner.name : 'شريك محذوف'}</td>
+                    <td>${settlement.payment_amount.toFixed(2)}</td>
+                    <td>${settlement.previous_balance.toFixed(2)}</td>
+                    <td>${settlement.final_balance.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSettlement(${settlement.settlement_id})"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        }
+    } catch (error) {
+        console.error('Error rendering settlements list:', error);
+    }
+}
+
+function setupAddSettlementForm() {
+    const form = document.getElementById('addSettlementForm');
+    if (!form) return;
+
+    const partnerSelect = document.getElementById('settlementPartner');
+    const detailsDiv = document.getElementById('partnerDetails');
+    const amountInput = document.getElementById('settlementAmount');
+    const finalBalanceSpan = document.getElementById('partnerFinalBalance');
+
+    document.getElementById('settlementDate').valueAsDate = new Date();
+
+    // Populate partners dropdown
+    getAllItems('partners').then(partners => {
+        partnerSelect.innerHTML = '<option value="">اختر شريكًا...</option>';
+        partners.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.partner_id;
+            option.textContent = p.name;
+            partnerSelect.appendChild(option);
+        });
+    });
+
+    let selectedPartner = null;
+
+    const updateBalances = () => {
+        if (!selectedPartner) return;
+        const paymentAmount = parseFloat(amountInput.value) || 0;
+        const finalBalance = selectedPartner.current_balance - paymentAmount;
+        finalBalanceSpan.textContent = finalBalance.toFixed(2);
+    };
+
+    partnerSelect.addEventListener('change', async () => {
+        const partnerId = parseInt(partnerSelect.value);
+        if (!partnerId) {
+            detailsDiv.classList.add('d-none');
+            selectedPartner = null;
+            return;
+        }
+        selectedPartner = await getItemById('partners', partnerId);
+        if (selectedPartner) {
+            document.getElementById('partnerPreviousBalance').textContent = selectedPartner.previous_balance.toFixed(2);
+            document.getElementById('partnerCurrentBalance').textContent = selectedPartner.current_balance.toFixed(2);
+            const outstandingAmount = selectedPartner.current_balance - selectedPartner.previous_balance;
+            document.getElementById('partnerOutstandingAmount').textContent = outstandingAmount.toFixed(2);
+            detailsDiv.classList.remove('d-none');
+            updateBalances();
+        }
+    });
+
+    amountInput.addEventListener('input', updateBalances);
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!selectedPartner) {
+            alert('الرجاء اختيار شريك أولاً.');
+            return;
+        }
+
+        const paymentAmount = parseFloat(amountInput.value);
+        const finalBalance = selectedPartner.current_balance - paymentAmount;
+
+        const settlementRecord = {
+            partner_id: selectedPartner.partner_id,
+            payment_amount: paymentAmount,
+            previous_balance: selectedPartner.current_balance,
+            outstanding_amount: selectedPartner.current_balance - selectedPartner.previous_balance,
+            final_balance: finalBalance,
+            date: document.getElementById('settlementDate').value
+        };
+
+        const updatedPartner = {
+            ...selectedPartner,
+            previous_balance: selectedPartner.current_balance,
+            current_balance: finalBalance
+        };
+
+        try {
+            // Using a single transaction to ensure atomicity
+            const tx = db.transaction(['settlements', 'partners'], 'readwrite');
+            const settlementStore = tx.objectStore('settlements');
+            const partnerStore = tx.objectStore('partners');
+
+            settlementStore.add(settlementRecord);
+            partnerStore.put(updatedPartner);
+
+            await new Promise((resolve, reject) => {
+                tx.oncomplete = resolve;
+                tx.onerror = reject;
+            });
+
+            const modalElement = document.getElementById('addSettlementModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            modal.hide();
+            form.reset();
+            detailsDiv.classList.add('d-none');
+
+            renderSettlementsList();
+        } catch (error) {
+            console.error('Error adding settlement:', error);
+            alert('حدث خطأ أثناء حفظ التسوية.');
+        }
+    });
+}
+
+function deleteSettlement(settlementId) {
+    alert(`حذف التسويات غير مدعوم حاليًا لأنه يتطلب عملية معقدة لعكس الأرصدة. (ID: ${settlementId})`);
 }
