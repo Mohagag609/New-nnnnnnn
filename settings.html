@@ -31,7 +31,29 @@
     </div>
 </div>
 
-<!-- Other settings can be added here in the future -->
+<!-- Print Settings Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">إعدادات الطباعة</h6>
+    </div>
+    <div class="card-body">
+        <p class="card-text">
+            هذه الإعدادات ستظهر في رأس وتذييل المستندات المطبوعة (ميزة قادمة).
+        </p>
+        <form>
+            <div class="mb-3">
+                <label for="printCompanyName" class="form-label">اسم الشركة (للهيدر)</label>
+                <input type="text" class="form-control" id="printCompanyName" placeholder="اسم شركتك">
+            </div>
+            <div class="mb-3">
+                <label for="printFooterText" class="form-label">نص التذييل</label>
+                <textarea class="form-control" id="printFooterText" rows="2" placeholder="مثال: جميع الحقوق محفوظة."></textarea>
+            </div>
+            <button type="submit" class="btn btn-secondary" disabled>حفظ إعدادات الطباعة (قريبًا)</button>
+        </form>
+    </div>
+</div>
+
 
 <script>
     document.dispatchEvent(new CustomEvent('settingsPageLoaded'));

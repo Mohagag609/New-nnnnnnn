@@ -1,0 +1,64 @@
+/* General Print Styles */
+@media print {
+    /* Hide non-essential elements */
+    body {
+        background-color: #fff;
+        font-size: 12pt;
+    }
+
+    #sidebar-wrapper,
+    .navbar,
+    .btn,
+    .modal,
+    .d-print-none {
+        display: none !important;
+    }
+
+    /* Ensure the main content takes up the full page */
+    #page-content-wrapper,
+    #wrapper,
+    .container,
+    .container-fluid {
+        width: 100% !important;
+        min-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Remove shadows and borders from cards for a cleaner look */
+    .card {
+        border: 1px solid #dee2e6 !important;
+        box-shadow: none !important;
+    }
+
+    a {
+        text-decoration: none;
+        color: #000;
+    }
+
+    /* Specific styles for the invoice view */
+    #invoice-view-container h1,
+    #invoice-view-container h3,
+    #invoice-view-container h5 {
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    /* Ensure tables look good */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 8px;
+    }
+    thead {
+        background-color: #f2f2f2;
+    }
+
+    /* Avoid breaking elements across pages */
+    .card, table, tr, td, th, img {
+        page-break-inside: avoid;
+    }
+}
