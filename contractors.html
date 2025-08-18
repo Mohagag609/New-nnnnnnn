@@ -1,0 +1,63 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة المقاولين</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addContractorModal">
+        <i class="fas fa-plus me-2"></i>إضافة مقاول جديد
+    </button>
+</div>
+
+<!-- Contractors Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة المقاولين</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="contractorsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرّف</th>
+                        <th>اسم المقاول</th>
+                        <th>معلومات التواصل</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="contractorsTableBody">
+                    <!-- Contractor rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Contractor Modal -->
+<div class="modal fade" id="addContractorModal" tabindex="-1" aria-labelledby="addContractorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContractorModalLabel">إضافة مقاول جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addContractorForm">
+                    <div class="mb-3">
+                        <label for="contractorName" class="form-label">اسم المقاول</label>
+                        <input type="text" class="form-control" id="contractorName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contractorContact" class="form-label">معلومات التواصل</label>
+                        <textarea class="form-control" id="contractorContact" rows="3"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ المقاول</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('contractorsPageLoaded'));
+</script>

@@ -1,0 +1,84 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة المشاريع</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+        <i class="fas fa-plus me-2"></i>إضافة مشروع جديد
+    </button>
+</div>
+
+<!-- Projects Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة المشاريع</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="projectsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرّف</th>
+                        <th>اسم المشروع</th>
+                        <th>الوصف</th>
+                        <th>تاريخ البدء</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="projectsTableBody">
+                    <!-- Project rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProjectModalLabel">إضافة مشروع جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProjectForm">
+                    <div class="mb-3">
+                        <label for="projectName" class="form-label">اسم المشروع</label>
+                        <input type="text" class="form-control" id="projectName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectDescription" class="form-label">وصف المشروع</label>
+                        <textarea class="form-control" id="projectDescription" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="projectStartDate" class="form-label">تاريخ البدء</label>
+                            <input type="date" class="form-control" id="projectStartDate">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="projectEndDate" class="form-label">تاريخ الانتهاء المتوقع</label>
+                            <input type="date" class="form-control" id="projectEndDate">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectStatus" class="form-label">حالة المشروع</label>
+                        <select class="form-select" id="projectStatus" required>
+                            <option value="جارٍ">جارٍ</option>
+                            <option value="مكتمل">مكتمل</option>
+                            <option value="متوقف">متوقف</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ المشروع</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('projectsPageLoaded'));
+</script>

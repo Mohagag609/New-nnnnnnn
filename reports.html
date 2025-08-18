@@ -1,0 +1,63 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">التقارير</h1>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <!-- Report Tabs -->
+        <ul class="nav nav-tabs card-header-tabs" id="reportTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="income-expense-tab" data-bs-toggle="tab" data-bs-target="#income-expense-report" type="button" role="tab">الإيرادات والمصروفات</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="accounts-tab" data-bs-toggle="tab" data-bs-target="#accounts-report" type="button" role="tab" disabled>حسابات العملاء/الموردين</button>
+            </li>
+             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="projects-tab" data-bs-toggle="tab" data-bs-target="#projects-report" type="button" role="tab" disabled>المشاريع</button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="reportTabContent">
+            <!-- Income and Expense Report Tab -->
+            <div class="tab-pane fade show active" id="income-expense-report" role="tabpanel">
+                <h5>تقرير الإيرادات والمصروفات</h5>
+                <div class="bg-light p-3 rounded mb-4 border">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label for="startDate" class="form-label">من تاريخ</label>
+                            <input type="date" id="startDate" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="endDate" class="form-label">إلى تاريخ</label>
+                            <input type="date" id="endDate" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <button id="generateIncomeExpenseReport" class="btn btn-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>توليد التقرير
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Results Area -->
+                <div id="incomeExpenseReportResult">
+                    <p class="text-muted text-center">الرجاء تحديد فترة زمنية ثم الضغط على "توليد التقرير" لعرض النتائج.</p>
+                </div>
+            </div>
+
+            <!-- Other Report Tabs (currently disabled) -->
+            <div class="tab-pane fade" id="accounts-report" role="tabpanel">
+                <p>سيتم إضافة تقارير حسابات العملاء والموردين هنا.</p>
+            </div>
+             <div class="tab-pane fade" id="projects-report" role="tabpanel">
+                <p>سيتم إضافة تقارير المشاريع هنا.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('reportsPageLoaded'));
+</script>

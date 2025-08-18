@@ -1,0 +1,98 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة المعاملات</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+        <i class="fas fa-plus me-2"></i>إضافة معاملة جديدة
+    </button>
+</div>
+
+<!-- Transactions Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">سجل المعاملات</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="transactionsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>النوع</th>
+                        <th>المبلغ</th>
+                        <th>البيان</th>
+                        <th>الجهة المرتبطة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsTableBody">
+                    <!-- Transaction rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Transaction Modal -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1" aria-labelledby="addTransactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTransactionModalLabel">إضافة معاملة جديدة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTransactionForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="transactionType" class="form-label">نوع المعاملة</label>
+                            <select class="form-select" id="transactionType" required>
+                                <option value="قبض">قبض (إيراد)</option>
+                                <option value="صرف">صرف (مصروف)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="transactionAmount" class="form-label">المبلغ</label>
+                            <input type="number" class="form-control" id="transactionAmount" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionDate" class="form-label">التاريخ</label>
+                        <input type="date" class="form-control" id="transactionDate" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="transactionDescription" class="form-label">البيان / الوصف</label>
+                        <textarea class="form-control" id="transactionDescription" rows="2"></textarea>
+                    </div>
+                    <hr>
+                    <p class="fw-bold">ربط المعاملة (اختياري)</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="transactionLinkType" class="form-label">ربط بـ</label>
+                            <select class="form-select" id="transactionLinkType">
+                                <option value="">بدون ربط</option>
+                                <option value="clients">عميل</option>
+                                <option value="suppliers">مورد</option>
+                                <option value="projects">مشروع</option>
+                                <option value="partners">شريك</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="transactionLinkId" class="form-label">الاسم</label>
+                            <select class="form-select" id="transactionLinkId" disabled>
+                                <option value="">اختر النوع أولاً</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ المعاملة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('transactionsPageLoaded'));
+</script>

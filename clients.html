@@ -1,0 +1,75 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة العملاء</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClientModal">
+        <i class="fas fa-plus me-2"></i>إضافة عميل جديد
+    </button>
+</div>
+
+<!-- Clients Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة العملاء</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="clientsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرّف</th>
+                        <th>اسم العميل</th>
+                        <th>رقم الهاتف</th>
+                        <th>العنوان</th>
+                        <th>الرصيد</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    <!-- Client rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Client Modal -->
+<div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addClientModalLabel">إضافة عميل جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addClientForm">
+                    <div class="mb-3">
+                        <label for="clientName" class="form-label">اسم العميل</label>
+                        <input type="text" class="form-control" id="clientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientPhone" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="clientPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientAddress" class="form-label">العنوان</label>
+                        <textarea class="form-control" id="clientAddress" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="clientBalance" class="form-label">الرصيد الافتتاحي</label>
+                        <input type="number" class="form-control" id="clientBalance" value="0" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ العميل</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // This script block will be executed when this partial is loaded via HTMX.
+    // We'll add the logic to app.js to handle rendering and form submission.
+    document.dispatchEvent(new CustomEvent('clientsPageLoaded'));
+</script>

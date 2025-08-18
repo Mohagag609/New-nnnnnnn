@@ -1,0 +1,73 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">إدارة الموردين</h1>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+        <i class="fas fa-plus me-2"></i>إضافة مورد جديد
+    </button>
+</div>
+
+<!-- Suppliers Table -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">قائمة الموردين</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="suppliersTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>المعرّف</th>
+                        <th>اسم المورد</th>
+                        <th>رقم الهاتف</th>
+                        <th>العنوان</th>
+                        <th>الرصيد</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="suppliersTableBody">
+                    <!-- Supplier rows will be inserted here by app.js -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSupplierModalLabel">إضافة مورد جديد</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSupplierForm">
+                    <div class="mb-3">
+                        <label for="supplierName" class="form-label">اسم المورد</label>
+                        <input type="text" class="form-control" id="supplierName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="supplierPhone" class="form-label">رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="supplierPhone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="supplierAddress" class="form-label">العنوان</label>
+                        <textarea class="form-control" id="supplierAddress" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="supplierBalance" class="form-label">الرصيد الافتتاحي</label>
+                        <input type="number" class="form-control" id="supplierBalance" value="0" required>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                         <button type="submit" class="btn btn-primary">حفظ المورد</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.dispatchEvent(new CustomEvent('suppliersPageLoaded'));
+</script>

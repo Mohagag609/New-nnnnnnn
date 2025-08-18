@@ -1,0 +1,38 @@
+<!-- Title -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">الإعدادات والأدوات</h1>
+</div>
+
+<!-- Data Management Card -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">إدارة البيانات</h6>
+    </div>
+    <div class="card-body">
+        <p class="card-text">
+            استخدم هذه الأدوات لعمل نسخة احتياطية من بياناتك أو استعادتها.
+        </p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <button class="btn btn-success" id="exportDataBtn">
+                <i class="fas fa-download me-2"></i>تصدير البيانات إلى JSON
+            </button>
+        </div>
+        <hr>
+        <h5 class="text-danger">منطقة الخطر</h5>
+        <p>
+            استيراد البيانات سيقوم بحذف جميع البيانات الحالية بشكل نهائي. الرجاء أخذ نسخة احتياطية أولاً.
+        </p>
+        <div class="d-flex align-items-center gap-2">
+             <input class="form-control" type="file" id="importFile" accept=".json">
+             <button class="btn btn-danger" id="importDataBtn">
+                <i class="fas fa-upload me-2"></i>استيراد من JSON
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Other settings can be added here in the future -->
+
+<script>
+    document.dispatchEvent(new CustomEvent('settingsPageLoaded'));
+</script>
