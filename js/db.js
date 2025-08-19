@@ -72,6 +72,12 @@ function initDB() {
         request.onsuccess = (event) => {
             db = event.target.result;
             console.log('Database opened successfully.');
+
+            // Ensure the virtual cashbox for settlements exists.
+            if (typeof ensureVirtualCashboxExists === 'function') {
+                ensureVirtualCashboxExists();
+            }
+
             resolve(db);
         };
 

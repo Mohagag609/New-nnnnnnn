@@ -1,3 +1,38 @@
+const VIRTUAL_CASHBOX_NAME = "خزنة التسويات";
+
+/**
+ * Checks if the virtual cashbox for settlements exists, and creates it if not.
+ * This should be called once the database is initialized.
+ */
+function ensureVirtualCashboxExists() {
+    if (!db) {
+        console.error("DB not ready for virtual cashbox check.");
+        return;
+    }
+    const tx = db.transaction('cashboxes', 'readwrite');
+    const store = tx.objectStore('cashboxes');
+    const index = store.index('name_idx');
+    const request = index.get(VIRTUAL_CASHBOX_NAME);
+
+    request.onsuccess = () => {
+        if (!request.result) {
+            // It doesn't exist, so create it.
+            console.log(`Virtual cashbox "${VIRTUAL_CASHBOX_NAME}" not found, creating it.`);
+            store.add({
+                name: VIRTUAL_CASHBOX_NAME,
+                initial_balance: 0,
+                current_balance: 0
+            });
+        } else {
+            console.log(`Virtual cashbox "${VIRTUAL_CASHBOX_NAME}" already exists.`);
+        }
+    };
+    tx.onerror = (e) => {
+        console.error("Error ensuring virtual cashbox exists:", e.target.error);
+    };
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const cashboxForm = document.getElementById('cashbox-form');
@@ -23,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 cashboxes.forEach(cashbox => {
                     const row = document.createElement('tr');
-                    // For now, current_balance is displayed. Later it will be calculated.
                     row.innerHTML = `
                         <td>${cashbox.cashbox_id}</td>
                         <td>${cashbox.name}</td>
@@ -56,8 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let request;
         if (cashboxId) {
-            // Editing existing cashbox. We only allow name change.
-            // We get the original record to preserve its balances.
             const getRequest = store.get(parseInt(cashboxId));
             getRequest.onsuccess = () => {
                 const existingCashbox = getRequest.result;
@@ -72,8 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             getRequest.onerror = (e) => console.error('Error fetching cashbox for update:', e.target.error);
         } else {
-            // Adding new cashbox
-            cashboxData.current_balance = initialBalance; // Current balance starts equal to initial
+            cashboxData.current_balance = initialBalance;
             request = store.add(cashboxData);
             request.onsuccess = () => {
                 cashboxForm.reset();
@@ -105,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('cashbox-id').value = cashbox.cashbox_id;
                 document.getElementById('cashbox-name').value = cashbox.name;
                 document.getElementById('cashbox-initial-balance').value = cashbox.initial_balance;
-                // Disable editing initial balance for existing cashboxes to maintain data integrity
                 document.getElementById('cashbox-initial-balance').disabled = true;
                 cashboxModal.show();
             }
@@ -113,7 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDeleteCashbox(id) {
-        // In a real app, we should check if any transactions are linked to this cashbox first.
         if (confirm('هل أنت متأكد أنك تريد حذف هذه الخزنة؟')) {
             const store = getObjectStore('cashboxes', 'readwrite');
             if (!store) return;
@@ -126,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cashboxModalEl.addEventListener('hidden.bs.modal', () => {
         cashboxForm.reset();
         document.getElementById('cashbox-id').value = '';
-        document.getElementById('cashbox-initial-balance').disabled = false; // Re-enable for 'add'
+        document.getElementById('cashbox-initial-balance').disabled = false;
     });
 
     const cashboxesSection = document.getElementById('cashboxes-section');

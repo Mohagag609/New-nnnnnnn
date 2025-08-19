@@ -1,109 +1,196 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // This module is now a simplified UI for creating a partner-linked transaction.
-    // The core logic is handled by the global processTransaction function.
+    // --- State & Elements ---
+    let calculatedSettlementActions = [];
+    const VIRTUAL_CASHBOX_NAME = "خزنة التسويات";
+    const projectSelector = document.getElementById('settlement-project-selector');
+    const detailsContainer = document.getElementById('settlement-details-container');
+    const contributionsTableBody = document.getElementById('settlement-partner-contributions-table');
+    const actionsSummary = document.getElementById('settlement-actions-summary');
+    const executeBtn = document.getElementById('execute-equalization-btn');
 
-    // --- Element Selectors ---
-    const settlementForm = document.getElementById('settlement-form');
-    const settlementModalEl = document.getElementById('settlementModal');
-    const settlementModal = new bootstrap.Modal(settlementModalEl);
-    const partnerSelect = document.getElementById('settlement-partner');
-    const balanceDisplay = document.getElementById('partner-current-balance-display');
-
-    // --- Helper Functions (assuming these are globally available or defined in other scripts) ---
-    // Note: To make this truly robust, populateSelect and getObjectStore should be moved to a shared utils.js file.
-    // For now, we'll redefine a minimal version here.
+    // --- Helper ---
     function getObjectStore(storeName, mode) {
-        if (!db) { console.error('Database not initialized!'); return null; }
+        if (!db) { return null; }
         return db.transaction(storeName, mode).objectStore(storeName);
     }
 
-    async function populateSelect(storeName, selectElementId, fieldName) {
-        const selectElement = document.getElementById(selectElementId);
-        selectElement.innerHTML = `<option value="">اختر...</option>`;
-        const store = getObjectStore(storeName, 'readonly');
+    // --- Main Functions ---
+
+    function populateProjectSelector() {
+        const store = getObjectStore('projects', 'readonly');
         if (!store) return;
         const request = store.getAll();
+        projectSelector.innerHTML = '<option value="">اختر مشروعا لبدء التسوية...</option>';
         request.onsuccess = () => {
-            request.result.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item[store.keyPath];
-                option.textContent = item[fieldName];
-                selectElement.appendChild(option);
+            request.result.forEach(p => {
+                projectSelector.innerHTML += `<option value="${p.project_id}">${p.name}</option>`;
             });
         };
     }
 
-    // --- Main Logic ---
-
-    // Populate dropdowns when the modal is about to open
-    settlementModalEl.addEventListener('show.bs.modal', () => {
-        populateSelect('partners', 'settlement-partner', 'name');
-        populateSelect('cashboxes', 'settlement-cashbox', 'name');
-        balanceDisplay.value = ''; // Clear display on open
-    });
-
-    // Update balance display when a partner is selected
-    partnerSelect.addEventListener('change', async () => {
-        const partnerId = parseInt(partnerSelect.value);
-        if (!partnerId) {
-            balanceDisplay.value = '';
+    async function calculateAndDisplayProjectSettlement() {
+        const projectId = parseInt(projectSelector.value);
+        if (!projectId) {
+            detailsContainer.classList.add('d-none');
             return;
         }
-        const store = getObjectStore('partners', 'readonly');
-        const request = store.get(partnerId);
-        request.onsuccess = () => {
-            const partner = request.result;
-            if (partner) {
-                balanceDisplay.value = partner.current_balance.toFixed(2);
+        detailsContainer.classList.remove('d-none');
+        executeBtn.disabled = true;
+        contributionsTableBody.innerHTML = '<tr><td colspan="3">جاري الحساب...</td></tr>';
+        actionsSummary.innerHTML = '';
+
+        const tx = db.transaction(['partners', 'transactions'], 'readonly');
+        const partnerStore = tx.objectStore('partners');
+        const transactionStore = tx.objectStore('transactions');
+
+        const allPartners = await new Promise(resolve => partnerStore.getAll().onsuccess = e => resolve(e.target.result));
+        const allTransactions = await new Promise(resolve => transactionStore.getAll().onsuccess = e => resolve(e.target.result));
+
+        // Filter partners and transactions for the selected project
+        const projectPartners = allPartners.filter(p => parseInt(p.project_id) === projectId);
+        if (projectPartners.length < 2) {
+            contributionsTableBody.innerHTML = '<tr><td colspan="3">يجب وجود شريكين على الأقل في المشروع لإجراء تسوية.</td></tr>';
+            return;
+        }
+
+        const contributions = new Map(projectPartners.map(p => [p.partner_id, { name: p.name, total: 0 }]));
+
+        allTransactions.forEach(t => {
+            if (parseInt(t.linked_project_id) === projectId && t.linked_partner_id && t.transaction_type === 'قبض') {
+                if (contributions.has(t.linked_partner_id)) {
+                    contributions.get(t.linked_partner_id).total += t.amount;
+                }
             }
-        };
-    });
+        });
 
-    /**
-     * Handles the settlement form submission by creating a transaction.
-     */
-    settlementForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+        const totalContribution = Array.from(contributions.values()).reduce((sum, p) => sum + p.total, 0);
+        const average = totalContribution / contributions.size;
 
-        // The settlement UI now creates a standard transaction
-        const transactionData = {
-            transaction_type: document.getElementById('settlement-type').value,
-            amount: parseFloat(document.getElementById('settlement-amount').value),
-            date: document.getElementById('settlement-date').value,
-            description: `تسوية: ${document.getElementById('settlement-description').value}`,
-            linked_cashbox_id: parseInt(document.getElementById('settlement-cashbox').value),
-            linked_partner_id: parseInt(document.getElementById('settlement-partner').value),
-            // These are not part of the settlement UI, so they are null
-            linked_project_id: null,
-            linked_client_id: null,
-            linked_supplier_id: null,
-            linked_invoice_id: null,
-        };
+        const debtors = [];
+        const creditors = [];
 
-        // Validate required fields
-        if (!transactionData.linked_cashbox_id || !transactionData.linked_partner_id || !transactionData.amount) {
-            alert('يرجى ملء جميع الحقول المطلوبة.');
-            return;
+        contributions.forEach((data, id) => {
+            const difference = data.total - average;
+            data.difference = difference;
+            if (difference > 0) {
+                creditors.push({ id, name: data.name, amount: difference });
+            } else if (difference < 0) {
+                debtors.push({ id, name: data.name, amount: -difference });
+            }
+        });
+
+        // Display contributions table
+        contributionsTableBody.innerHTML = '';
+        contributions.forEach(data => {
+            let status = 'متوازن';
+            let statusClass = 'text-secondary';
+            if (data.difference > 0) {
+                status = `دائن بمبلغ ${data.difference.toFixed(2)}`;
+                statusClass = 'text-success';
+            } else if (data.difference < 0) {
+                status = `مدين بمبلغ ${(-data.difference).toFixed(2)}`;
+                statusClass = 'text-danger';
+            }
+            contributionsTableBody.innerHTML += `<tr><td>${data.name}</td><td>${data.total.toFixed(2)}</td><td class="${statusClass}">${status}</td></tr>`;
+        });
+
+        // Calculate settlement actions (simple greedy algorithm)
+        calculatedSettlementActions = [];
+        debtors.sort((a, b) => a.amount - b.amount);
+        creditors.sort((a, b) => a.amount - b.amount);
+
+        while (debtors.length > 0 && creditors.length > 0) {
+            const debtor = debtors[0];
+            const creditor = creditors[0];
+            const amount = Math.min(debtor.amount, creditor.amount);
+
+            if (amount > 0) {
+                 calculatedSettlementActions.push({ from: debtor.id, to: creditor.id, amount });
+            }
+
+            debtor.amount -= amount;
+            creditor.amount -= amount;
+
+            if (debtor.amount < 0.01) debtors.shift();
+            if (creditor.amount < 0.01) creditors.shift();
         }
 
-        // Call the global transaction processor from transactions.js
-        // This is a dependency. Assumes transactions.js is loaded and processTransaction is global.
-        if (typeof processTransaction === 'function') {
-            processTransaction(transactionData);
-            settlementModal.hide();
-            settlementForm.reset();
+        // Display actions
+        if (calculatedSettlementActions.length > 0) {
+            actionsSummary.innerHTML = '<p>لتسوية الحسابات، يجب تنفيذ الإجراءات التالية:</p>';
+            const list = document.createElement('ul');
+            list.className = 'list-group';
+            calculatedSettlementActions.forEach(action => {
+                const fromPartner = contributions.get(action.from).name;
+                const toPartner = contributions.get(action.to).name;
+                list.innerHTML += `<li class="list-group-item">يقوم <strong>${fromPartner}</strong> بدفع <strong>${action.amount.toFixed(2)}</strong> إلى <strong>${toPartner}</strong>.</li>`;
+            });
+            actionsSummary.appendChild(list);
+            executeBtn.disabled = false;
         } else {
-            alert('خطأ: وظيفة معالجة المعاملات غير متاحة. الرجاء تحديث الصفحة والمحاولة مرة أخرى.');
-            console.error('processTransaction function is not defined globally.');
+            actionsSummary.innerHTML = '<div class="alert alert-success">جميع مساهمات الشركاء متوازنة. لا حاجة للتسوية.</div>';
+        }
+    }
+
+    async function handleExecuteSettlement() {
+        if (calculatedSettlementActions.length === 0) return;
+        executeBtn.disabled = true;
+        executeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التنفيذ...';
+
+        const cashboxStore = getObjectStore('cashboxes', 'readonly');
+        const vCashboxReq = cashboxStore.index('name_idx').get(VIRTUAL_CASHBOX_NAME);
+
+        vCashboxReq.onsuccess = () => {
+            const vCashbox = vCashboxReq.result;
+            if (!vCashbox) {
+                alert(`خطأ: الخزنة الافتراضية "${VIRTUAL_CASHBOX_NAME}" غير موجودة.`);
+                executeBtn.innerHTML = '<i class="fas fa-check me-2"></i> تأكيد تنفيذ التسوية';
+                return;
+            }
+
+            for (const action of calculatedSettlementActions) {
+                const date = new Date().toISOString().slice(0, 10);
+                const desc = `تسوية مساهمات مشروع: ${projectSelector.options[projectSelector.selectedIndex].text}`;
+
+                // Transaction 1: Payment FROM debtor partner TO virtual cashbox
+                processTransaction({
+                    transaction_type: 'صرف',
+                    amount: action.amount,
+                    date: date,
+                    description: `دفعة تسوية إلى ${contributions.get(action.to).name}. ${desc}`,
+                    linked_cashbox_id: vCashbox.cashbox_id,
+                    linked_partner_id: action.from
+                });
+
+                // Transaction 2: Payment FROM virtual cashbox TO creditor partner
+                processTransaction({
+                    transaction_type: 'قبض',
+                    amount: action.amount,
+                    date: date,
+                    description: `دفعة تسوية من ${contributions.get(action.from).name}. ${desc}`,
+                    linked_cashbox_id: vCashbox.cashbox_id,
+                    linked_partner_id: action.to
+                });
+            }
+
+            // Give transactions time to process
+            setTimeout(() => {
+                alert('تم تنفيذ التسوية بنجاح!');
+                calculateAndDisplayProjectSettlement(); // Refresh the view
+            }, 1000);
+        };
+    }
+
+    // --- Event Listeners ---
+    projectSelector.addEventListener('change', calculateAndDisplayProjectSettlement);
+    executeBtn.addEventListener('click', handleExecuteSettlement);
+    const settlementsSection = document.getElementById('settlements-section');
+    const observer = new MutationObserver(() => {
+        if (db && !settlementsSection.classList.contains('d-none')) {
+            populateProjectSelector();
+            detailsContainer.classList.add('d-none');
         }
     });
-
-    // Since this module no longer manages its own table, we remove the display and delete logic.
-    // The result of a settlement will be visible in the main Transactions list.
-    // We can clear the old table body for cleanliness.
-    const settlementsTableBody = document.getElementById('settlements-table-body');
-    if(settlementsTableBody) {
-        settlementsTableBody.innerHTML = '<tr><td colspan="7" class="text-center">يتم عرض التسويات كمعاملات في <a href="#" onclick="document.querySelector(`[data-section=transactions]`).click()">قائمة المعاملات</a>.</td></tr>';
-    }
+    observer.observe(settlementsSection, { attributes: true, attributeFilter: ['class'] });
 });

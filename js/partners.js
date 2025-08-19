@@ -115,7 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
         request.onsuccess = () => {
             partnerForm.reset();
             partnerModal.hide();
-            displayPartners();
+            // Yield thread to allow modal hide animation to complete before redrawing table
+            setTimeout(displayPartners, 200);
         };
         request.onerror = (event) => console.error('Error saving partner:', event.target.error);
     });
