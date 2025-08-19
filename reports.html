@@ -56,7 +56,7 @@
 
                 <!-- Report Results Area -->
                 <div id="incomeExpenseReportResult">
-                    <p class="text-muted text-center">الرجاء تحديد فترة زمنية ثم الضغط على "توليد التقرير" لعرض النتائج.</p>
+                    <p class="text-muted text-center">الرجاء تحديد فترة زمنية ثم الضغط على "تطبيق" لعرض النتائج.</p>
                 </div>
             </div>
 
@@ -78,8 +78,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Report Results Area -->
                 <div id="clientStatementResult">
                     <p class="text-muted text-center">الرجاء اختيار عميل ثم الضغط على "توليد الكشف" لعرض النتائج.</p>
                 </div>
@@ -102,6 +100,26 @@
                 </div>
                 <div id="supplierStatementResult">
                      <p class="text-muted text-center">الرجاء اختيار مورد ثم الضغط على "توليد الكشف" لعرض النتائج.</p>
+                </div>
+                <hr class="my-4">
+                <h5>كشف حساب شريك</h5>
+                <div class="bg-light p-3 rounded mb-4 border">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-8">
+                            <label for="partnerStatementSelect" class="form-label">اختر الشريك</label>
+                            <select id="partnerStatementSelect" class="form-select">
+                                <option>جاري التحميل...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="generatePartnerStatement" class="btn btn-primary w-100">
+                                <i class="fas fa-cogs me-2"></i>توليد الكشف
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="partnerStatementResult">
+                     <p class="text-muted text-center">الرجاء اختيار شريك ثم الضغط على "توليد الكشف" لعرض النتائج.</p>
                 </div>
             </div>
              <div class="tab-pane fade" id="projects-report" role="tabpanel">
