@@ -422,7 +422,42 @@
                 </div>
 
             </section>
-            <section id="backup-section" class="d-none"></section>
+            <section id="backup-section" class="d-none">
+                <h2><i class="fas fa-cloud-upload-alt me-2"></i> النسخ الاحتياطي والاستعادة</h2>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4>تصدير البيانات (نسخ احتياطي)</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            انقر على الزر أدناه لتنزيل نسخة احتياطية كاملة من جميع بياناتك. سيتم حفظ البيانات في ملف واحد بصيغة <code>.json</code> على جهاز الكمبيوتر الخاص بك. احتفظ بهذا الملف في مكان آمن.
+                        </p>
+                        <button id="download-backup-btn" class="btn btn-primary">
+                            <i class="fas fa-download me-2"></i> تنزيل ملف النسخ الاحتياطي
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card mt-4 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h4>استعادة البيانات من ملف</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-danger">
+                            <strong>تحذير:</strong> ستؤدي استعادة البيانات من ملف إلى مسح جميع البيانات الحالية في التطبيق بشكل نهائي واستبدالها بالبيانات الموجودة في الملف. تأكد من أنك اخترت الملف الصحيح.
+                        </p>
+                        <div class="mb-3">
+                            <label for="restore-file-input" class="form-label">اختر ملف النسخ الاحتياطي (<code>.json</code>):</label>
+                            <input class="form-control" type="file" id="restore-file-input" accept=".json">
+                        </div>
+                        <button id="restore-backup-btn" class="btn btn-danger" disabled>
+                            <i class="fas fa-upload me-2"></i> استعادة البيانات الآن
+                        </button>
+                    </div>
+                </div>
+
+            </section>
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -437,6 +472,7 @@
     <script src="js/settlements.js"></script>
     <script src="js/revenue-expenses.js"></script>
     <script src="js/reports.js"></script>
+    <script src="js/backup.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
