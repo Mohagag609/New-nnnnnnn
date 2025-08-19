@@ -114,6 +114,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function createDataMap(storeName, keyPath, valueField = 'name') {
+        return new Promise(resolve => {
+            const store = getObjectStore(storeName, 'readonly');
+            if (!store) return resolve(new Map());
+            const request = store.getAll();
+            request.onsuccess = () => {
+                const dataMap = new Map(request.result.map(item => [item[keyPath], item[valueField]]));
+                resolve(dataMap);
+            };
+            request.onerror = () => resolve(new Map());
+        });
+    }
+
+    /**
+     * Report 4: Generates a summary of all settlements.
+     */
+    async function generateSettlementsReport() {
+        const settlementReportBody = document.getElementById('report-settlements-summary');
+        const store = getObjectStore('settlements', 'readonly');
+        if (!store) return;
+
+        const request = store.getAll();
+        request.onsuccess = async () => {
+            const settlements = request.result;
+            const partnerMap = await createDataMap('partners', 'partner_id');
+            const projectMap = await createDataMap('projects', 'project_id');
+
+            settlementReportBody.innerHTML = '';
+            if (settlements.length === 0) {
+                settlementReportBody.innerHTML = '<tr><td colspan="4" class="text-center">لا يوجد بيانات.</td></tr>';
+            } else {
+                settlements.forEach(s => {
+                    const partnerName = partnerMap.get(s.partner_id) || '?';
+                    const projectName = projectMap.get(s.linked_project_id) || '?';
+                    const row = settlementReportBody.insertRow();
+                    row.innerHTML = `
+                        <td>${s.date}</td>
+                        <td>${partnerName}</td>
+                        <td>${projectName}</td>
+                        <td>${s.payment_amount.toFixed(2)}</td>
+                    `;
+                });
+            }
+        };
+    }
+
     // --- Observer ---
     const reportsSection = document.getElementById('reports-section');
     const observer = new MutationObserver(() => {
@@ -121,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             generateCashboxReport();
             generatePartnerBalanceReport();
             generateProjectProfitabilityReport();
+            generateSettlementsReport();
         }
     });
     observer.observe(reportsSection, { attributes: true, attributeFilter: ['class'] });

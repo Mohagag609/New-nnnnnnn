@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${cashboxName}</td>
                         <td>${partyName}</td>
                         <td>
+                            <button class="btn btn-sm btn-info edit-btn" data-id="${t.transaction_id}" disabled><i class="fas fa-edit"></i></button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${t.transaction_id}"><i class="fas fa-trash"></i></button>
                         </td>
                     `;

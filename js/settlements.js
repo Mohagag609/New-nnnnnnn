@@ -85,6 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${projectName}</td>
                         <td>${s.payment_amount.toFixed(2)}</td>
                         <td>${s.final_balance.toFixed(2)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info edit-btn" data-id="${s.settlement_id}" disabled><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${s.settlement_id}"><i class="fas fa-trash"></i></button>
+                        </td>
                     `;
                     settlementsTableBody.appendChild(row);
                 });
@@ -157,6 +161,58 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error during settlement transaction:', e.target.error);
         };
     });
+
+    settlementsTableBody.addEventListener('click', (e) => {
+        const target = e.target.closest('button.delete-btn');
+        if (!target) return;
+
+        const settlementId = parseInt(target.getAttribute('data-id'));
+        if (confirm('هل أنت متأكد أنك تريد حذف هذه التسوية؟ سيتم استرجاع المبلغ إلى رصيد الشريك.')) {
+            handleDeleteSettlement(settlementId);
+        }
+    });
+
+    function handleDeleteSettlement(settlementId) {
+        const tx = db.transaction(['settlements', 'partners'], 'readwrite');
+        const settlementStore = tx.objectStore('settlements');
+        const partnerStore = tx.objectStore('partners');
+
+        const settlementRequest = settlementStore.get(settlementId);
+
+        settlementRequest.onsuccess = () => {
+            const settlement = settlementRequest.result;
+            if (!settlement) {
+                console.error("Settlement not found!");
+                tx.abort();
+                return;
+            }
+
+            const partnerRequest = partnerStore.get(settlement.partner_id);
+            partnerRequest.onsuccess = () => {
+                const partner = partnerRequest.result;
+                if (!partner) {
+                    console.error("Associated partner not found!");
+                    tx.abort();
+                    return;
+                }
+
+                // Reverse the settlement amount
+                partner.current_balance += settlement.payment_amount;
+
+                partnerStore.put(partner);
+                settlementStore.delete(settlementId);
+            };
+        };
+
+        tx.oncomplete = () => {
+            console.log('Settlement deleted and partner balance restored.');
+            displaySettlements();
+        };
+
+        tx.onerror = (e) => {
+            console.error('Error deleting settlement:', e.target.error);
+        };
+    }
 
     // Initial display
     const settlementsSection = document.getElementById('settlements-section');
