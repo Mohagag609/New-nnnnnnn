@@ -57,14 +57,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const contributions = new Map(projectPartners.map(p => [p.partner_id, { name: p.name, total: 0 }]));
 
-        // Filter transactions and calculate contributions with robust type checking
+        // Filter transactions and calculate contributions with the corrected logic
         allTransactions.forEach(t => {
             const isProjectMatch = t.linked_project_id && Number(t.linked_project_id) === projectId;
-            const isPartnerContribution = t.linked_partner_id && t.transaction_type === 'قبض';
+            if (!isProjectMatch || !t.linked_partner_id) return;
 
-            if (isProjectMatch && isPartnerContribution) {
-                // Ensure the partner from the transaction belongs to the project
-                if (contributions.has(t.linked_partner_id)) {
+            // Ensure the partner from the transaction belongs to the project being settled
+            if (contributions.has(t.linked_partner_id)) {
+                // A contribution is a receipt FROM the partner, or an expense paid BY the partner.
+                if (t.transaction_type === 'قبض' || t.is_partner_expense) {
                     contributions.get(t.linked_partner_id).total += t.amount;
                 }
             }
