@@ -47,8 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const allPartners = await new Promise(resolve => partnerStore.getAll().onsuccess = e => resolve(e.target.result));
         const allTransactions = await new Promise(resolve => transactionStore.getAll().onsuccess = e => resolve(e.target.result));
 
-        // Filter partners and transactions for the selected project
-        const projectPartners = allPartners.filter(p => p.project_id && parseInt(p.project_id, 10) === projectId);
+        // Filter partners for the selected project with robust type checking
+        const projectPartners = allPartners.filter(p => p.project_id && Number(p.project_id) === projectId);
+
         if (projectPartners.length < 2) {
             contributionsTableBody.innerHTML = '<tr><td colspan="3">يجب وجود شريكين على الأقل في المشروع لإجراء تسوية.</td></tr>';
             return;
@@ -56,8 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const contributions = new Map(projectPartners.map(p => [p.partner_id, { name: p.name, total: 0 }]));
 
+        // Filter transactions and calculate contributions with robust type checking
         allTransactions.forEach(t => {
-            if (parseInt(t.linked_project_id) === projectId && t.linked_partner_id && t.transaction_type === 'قبض') {
+            const isProjectMatch = t.linked_project_id && Number(t.linked_project_id) === projectId;
+            const isPartnerContribution = t.linked_partner_id && t.transaction_type === 'قبض';
+
+            if (isProjectMatch && isPartnerContribution) {
+                // Ensure the partner from the transaction belongs to the project
                 if (contributions.has(t.linked_partner_id)) {
                     contributions.get(t.linked_partner_id).total += t.amount;
                 }
