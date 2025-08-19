@@ -268,6 +268,13 @@
                             <div class="modal-body">
                                 <form id="settlement-form">
                                     <div class="mb-3">
+                                        <label for="settlement-type" class="form-label">نوع التسوية</label>
+                                        <select class="form-select" id="settlement-type" required>
+                                            <option value="صرف">صرف للشريك (Payment to Partner)</option>
+                                            <option value="قبض">قبض من الشريك (Receipt from Partner)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="settlement-partner" class="form-label">الشريك</label>
                                         <select class="form-select" id="settlement-partner" required></select>
                                     </div>
@@ -276,20 +283,24 @@
                                         <input type="text" id="partner-current-balance-display" class="form-control" disabled>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="settlement-project" class="form-label">المشروع المرتبط</label>
-                                        <select class="form-select" id="settlement-project" required></select>
+                                        <label for="settlement-cashbox" class="form-label">من/إلى خزنة</label>
+                                        <select class="form-select" id="settlement-cashbox" required></select>
                                     </div>
                                     <div class="mb-3">
-                                        <label for="settlement-amount" class="form-label">المبلغ المدفوع</label>
+                                        <label for="settlement-amount" class="form-label">مبلغ التسوية</label>
                                         <input type="number" class="form-control" id="settlement-amount" required min="0" step="0.01">
                                     </div>
                                     <div class="mb-3">
                                         <label for="settlement-date" class="form-label">تاريخ التسوية</label>
                                         <input type="date" class="form-control" id="settlement-date" required>
                                     </div>
+                                     <div class="mb-3">
+                                        <label for="settlement-description" class="form-label">الوصف</label>
+                                        <textarea class="form-control" id="settlement-description" rows="2"></textarea>
+                                    </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
-                                        <button type="submit" class="btn btn-primary">حفظ التسوية</button>
+                                        <button type="submit" class="btn btn-primary">تنفيذ التسوية</button>
                                     </div>
                                 </form>
                             </div>
