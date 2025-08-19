@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         request.onsuccess = () => {
             supplierForm.reset();
             supplierModal.hide();
-            displaySuppliers();
+            setTimeout(displaySuppliers, 200);
         };
         request.onerror = (e) => console.error('Error saving supplier:', e.target.error);
     });

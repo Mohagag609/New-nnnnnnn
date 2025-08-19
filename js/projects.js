@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('Project saved successfully.');
             projectForm.reset();
             projectModal.hide();
-            displayProjects();
+            setTimeout(displayProjects, 200);
         };
 
         request.onerror = (event) => {

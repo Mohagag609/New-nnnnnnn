@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 putRequest.onsuccess = () => {
                     cashboxForm.reset();
                     cashboxModal.hide();
-                    displayCashboxes();
+                    setTimeout(displayCashboxes, 200);
                 };
                  putRequest.onerror = (e) => console.error('Error updating cashbox:', e.target.error);
             };
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
             request.onsuccess = () => {
                 cashboxForm.reset();
                 cashboxModal.hide();
-                displayCashboxes();
+                setTimeout(displayCashboxes, 200);
             };
             request.onerror = (e) => console.error('Error adding cashbox:', e.target.error);
         }

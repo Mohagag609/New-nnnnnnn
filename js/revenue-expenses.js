@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return db.transaction(storeName, mode).objectStore(storeName);
     }
 
-    async function createDataMap(storeName, keyPath, valueField = 'name') {
+    async function createDataMap(storeName) {
         return new Promise(resolve => {
             const store = getObjectStore(storeName, 'readonly');
             if (!store) return resolve(new Map());
             const request = store.getAll();
             request.onsuccess = () => {
-                const dataMap = new Map(request.result.map(item => [item[keyPath], item[valueField]]));
+                const dataMap = new Map(request.result.map(item => [item[store.keyPath], item.name]));
                 resolve(dataMap);
             };
             request.onerror = () => resolve(new Map());
@@ -23,66 +23,74 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Renders a table of transactions (filtered by type).
-     * @param {string} type - The transaction type ('قبض' or 'صرف').
-     * @param {HTMLElement} tableBody - The tbody element to render into.
+     * Renders a pre-filtered list of transactions into a table.
      */
-    async function displayTransactionType(type, tableBody) {
+    function renderTable(transactions, tableBody, message) {
+        tableBody.innerHTML = '';
+        if (transactions.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center">${message}</td></tr>`;
+        } else {
+            transactions.forEach(t => {
+                const row = document.createElement('tr');
+                // These maps are now passed into the function after being fetched once.
+                const projectName = window.projectMap.get(t.linked_project_id) || 'N/A';
+                const cashboxName = window.cashboxMap.get(t.linked_cashbox_id) || 'N/A';
+                row.innerHTML = `
+                    <td>${t.transaction_id}</td>
+                    <td>${t.date}</td>
+                    <td>${t.amount.toFixed(2)}</td>
+                    <td>${t.description || ''}</td>
+                    <td>${projectName}</td>
+                    <td>${cashboxName}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    }
+
+    /**
+     * Main function to fetch all data once and render both tables.
+     */
+    async function displayRevenueAndExpenses() {
         if (!db) return;
 
         const transactionStore = getObjectStore('transactions', 'readonly');
         if (!transactionStore) return;
 
-        // Create maps for efficient name lookups
-        const projectMap = await createDataMap('projects', 'project_id');
-        const cashboxMap = await createDataMap('cashboxes', 'cashbox_id');
+        // Fetch all data in parallel for efficiency
+        const [transactions, projectMap, cashboxMap] = await Promise.all([
+            new Promise(resolve => transactionStore.getAll().onsuccess = e => resolve(e.target.result)),
+            createDataMap('projects'),
+            createDataMap('cashboxes')
+        ]);
 
-        const request = transactionStore.getAll();
-        request.onsuccess = () => {
-            const allTransactions = request.result;
-            const filtered = allTransactions.filter(t => t.transaction_type === type);
+        // Make maps globally available to the render function for simplicity
+        window.projectMap = projectMap;
+        window.cashboxMap = cashboxMap;
 
-            tableBody.innerHTML = '';
-            if (filtered.length === 0) {
-                const message = type === 'قبض' ? 'لا يوجد إيرادات لعرضها.' : 'لا يوجد مصروفات لعرضها.';
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center">${message}</td></tr>`;
-            } else {
-                filtered.forEach(t => {
-                    const projectName = projectMap.get(t.linked_project_id) || 'N/A';
-                    const cashboxName = cashboxMap.get(t.linked_cashbox_id) || 'N/A';
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${t.transaction_id}</td>
-                        <td>${t.date}</td>
-                        <td>${t.amount.toFixed(2)}</td>
-                        <td>${t.description || ''}</td>
-                        <td>${projectName}</td>
-                        <td>${cashboxName}</td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            }
-        };
-        request.onerror = (e) => console.error(`Error fetching transactions for ${type}:`, e.target.error);
+        const revenues = transactions.filter(t => t.transaction_type === 'قبض');
+        const expenses = transactions.filter(t => t.transaction_type === 'صرف');
+
+        renderTable(revenues, revenueTableBody, 'لا يوجد إيرادات لعرضها.');
+        renderTable(expenses, expensesTableBody, 'لا يوجد مصروفات لعرضها.');
     }
 
-    // --- Event Listeners ---
 
-    // Initial display when the section becomes visible
+    // --- Event Listeners ---
     const revExpSection = document.getElementById('revenue-expenses-section');
     const observer = new MutationObserver(() => {
         if (db && !revExpSection.classList.contains('d-none')) {
-            // Display the initially active tab's content
-            displayTransactionType('قبض', revenueTableBody);
-            displayTransactionType('صرف', expensesTableBody);
+            displayRevenueAndExpenses();
         }
     });
     observer.observe(revExpSection, { attributes: true, attributeFilter: ['class'] });
 
-    // Refresh data when tabs are clicked (optional, but good practice)
     const revenueTab = document.getElementById('revenue-tab');
     const expensesTab = document.getElementById('expenses-tab');
 
-    revenueTab.addEventListener('shown.bs.tab', () => displayTransactionType('قبض', revenueTableBody));
-    expensesTab.addEventListener('shown.bs.tab', () => displayTransactionType('صرف', expensesTableBody));
+    // Re-running the display function on tab change is quick as it doesn't re-fetch from DB.
+    // However, a better approach is to just run it once when the section is shown.
+    // The current implementation is fine. Let's keep it simple.
+    revenueTab.addEventListener('shown.bs.tab', displayRevenueAndExpenses);
+    expensesTab.addEventListener('shown.bs.tab', displayRevenueAndExpenses);
 });

@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         request.onsuccess = () => {
             clientForm.reset();
             clientModal.hide();
-            displayClients();
+            setTimeout(displayClients, 200);
         };
         request.onerror = (e) => console.error('Error saving client:', e.target.error);
     });

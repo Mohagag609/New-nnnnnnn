@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const allTransactions = await new Promise(resolve => transactionStore.getAll().onsuccess = e => resolve(e.target.result));
 
         // Filter partners and transactions for the selected project
-        const projectPartners = allPartners.filter(p => parseInt(p.project_id) === projectId);
+        const projectPartners = allPartners.filter(p => p.project_id && parseInt(p.project_id, 10) === projectId);
         if (projectPartners.length < 2) {
             contributionsTableBody.innerHTML = '<tr><td colspan="3">يجب وجود شريكين على الأقل في المشروع لإجراء تسوية.</td></tr>';
             return;
